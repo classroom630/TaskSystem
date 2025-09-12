@@ -96,7 +96,10 @@ namespace TaskSystem.API.Data.Services
             await _userManager.AddToRoleAsync(user, registerDto.Role);
             
             // Send welcome email
-            await _emailService.SendWelcomeEmailAsync(user.Email, user.FullName);
+            if (!string.IsNullOrEmpty(user.Email))
+            {
+                await _emailService.SendWelcomeEmailAsync(user.Email, user.FullName);
+            }
             
             var token = await GenerateJwtTokenAsync(user);
             var refreshToken = await GenerateRefreshTokenAsync(user);
