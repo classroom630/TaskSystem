@@ -9,12 +9,12 @@ using TaskSystem.WebApp.ViewModels;
 namespace TaskSystem.WebApp.Controllers;
 
 [Authorize]
-public class TaskController : Controller
+public class TasksController : Controller
 {
     private readonly IApiService _apiService;
-    private readonly ILogger<TaskController> _logger;
+    private readonly ILogger<TasksController> _logger;
 
-    public TaskController(IApiService apiService, ILogger<TaskController> logger)
+    public TasksController(IApiService apiService, ILogger<TasksController> logger)
     {
         _apiService = apiService;
         _logger = logger;
