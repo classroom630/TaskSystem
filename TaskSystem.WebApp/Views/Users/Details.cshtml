@@ -1,0 +1,109 @@
+@model UserDto
+@{
+    ViewData["Title"] = "User Details";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title mb-0">
+                    <i class="bi bi-person-circle"></i> User Details
+                </h4>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-sm-4">
+                        <strong><i class="bi bi-person me-2"></i>Full Name:</strong>
+                    </div>
+                    <div class="col-sm-8">
+                        @Model.FullName
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-sm-4">
+                        <strong><i class="bi bi-envelope me-2"></i>Email:</strong>
+                    </div>
+                    <div class="col-sm-8">
+                        <a href="mailto:@Model.Email">@Model.Email</a>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-sm-4">
+                        <strong><i class="bi bi-shield me-2"></i>Role:</strong>
+                    </div>
+                    <div class="col-sm-8">
+                        @switch (Model.Role)
+                        {
+                            case "Admin":
+                                <span class="badge bg-danger fs-6"><i class="bi bi-shield-fill"></i> Admin</span>
+                                break;
+                            case "Manager":
+                                <span class="badge bg-warning fs-6"><i class="bi bi-people-fill"></i> Manager</span>
+                                break;
+                            case "User":
+                                <span class="badge bg-primary fs-6"><i class="bi bi-person"></i> User</span>
+                                break;
+                            default:
+                                <span class="badge bg-secondary fs-6">@Model.Role</span>
+                                break;
+                        }
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-sm-4">
+                        <strong><i class="bi bi-toggle-on me-2"></i>Status:</strong>
+                    </div>
+                    <div class="col-sm-8">
+                        @if (Model.IsActive)
+                        {
+                            <span class="badge bg-success fs-6"><i class="bi bi-check-circle"></i> Active</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary fs-6"><i class="bi bi-x-circle"></i> Inactive</span>
+                        }
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-sm-4">
+                        <strong><i class="bi bi-calendar-plus me-2"></i>Created Date:</strong>
+                    </div>
+                    <div class="col-sm-8">
+                        @Model.CreatedAt.ToString("MMMM dd, yyyy 'at' hh:mm tt")
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-sm-4">
+                        <strong><i class="bi bi-hash me-2"></i>User ID:</strong>
+                    </div>
+                    <div class="col-sm-8">
+                        <code>@Model.Id</code>
+                    </div>
+                </div>
+
+                <hr class="my-4">
+
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                    <a asp-action="Index" class="btn btn-secondary me-md-2">
+                        <i class="bi bi-arrow-left"></i> Back to List
+                    </a>
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning me-md-2">
+                            <i class="bi bi-pencil"></i> Edit User
+                        </a>
+                        <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-danger">
+                            <i class="bi bi-trash"></i> Delete User
+                        </a>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
