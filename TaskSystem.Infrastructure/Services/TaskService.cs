@@ -7,25 +7,27 @@ namespace TaskSystem.Infrastructure.Services;
 
 public class TaskService : ITaskService
 {
-    private readonly IUnitOfWork _unitOfWork;
+    private readonly ITaskRepository _taskRepository;
+    private readonly IUserRepository _userRepository;
     private readonly ILogger<TaskService> _logger;
 
-    public TaskService(IUnitOfWork unitOfWork, ILogger<TaskService> logger)
+    public TaskService(ITaskRepository taskRepository, IUserRepository userRepository, ILogger<TaskService> logger)
     {
-        _unitOfWork = unitOfWork;
+        _taskRepository = taskRepository;
+        _userRepository = userRepository;
         _logger = logger;
     }
 
     public async Task<IEnumerable<TaskDto>> GetAllTasksAsync()
     {
-        var tasks = await _unitOfWork.Tasks.GetAllAsync();
+        var tasks = await _taskRepository.GetAllAsync();
         return tasks.Select(MapToTaskDto);
     }
 
     public async Task<IEnumerable<TaskDto>> GetTasksByUserAsync(int userId)
     {
-        var assignedTasks = await _unitOfWork.Tasks.GetByAssignedUserAsync(userId);
-        var createdTasks = await _unitOfWork.Tasks.GetByCreatedUserAsync(userId);
+        var assignedTasks = await _taskRepository.GetByAssignedUserAsync(userId);
+        var createdTasks = await _taskRepository.GetByCreatedUserAsync(userId);
         
         var allTasks = assignedTasks.Union(createdTasks).Distinct();
         return allTasks.Select(MapToTaskDto);
@@ -38,19 +40,19 @@ public class TaskService : ITaskService
         switch (userRole)
         {
             case UserRoles.Admin:
-                tasks = await _unitOfWork.Tasks.GetAllAsync();
+                tasks = await _taskRepository.GetAllAsync();
                 break;
             
             case UserRoles.Manager:
                 // Manager can see all tasks for now - could be limited to team tasks in future
-                tasks = await _unitOfWork.Tasks.GetAllAsync();
+                tasks = await _taskRepository.GetAllAsync();
                 break;
             
             case UserRoles.User:
             default:
                 // Users can only see tasks assigned to them or created by them
-                var assignedTasks = await _unitOfWork.Tasks.GetByAssignedUserAsync(currentUserId);
-                var createdTasks = await _unitOfWork.Tasks.GetByCreatedUserAsync(currentUserId);
+                var assignedTasks = await _taskRepository.GetByAssignedUserAsync(currentUserId);
+                var createdTasks = await _taskRepository.GetByCreatedUserAsync(currentUserId);
                 tasks = assignedTasks.Union(createdTasks).Distinct();
                 break;
         }
@@ -60,7 +62,7 @@ public class TaskService : ITaskService
 
     public async Task<TaskDto?> GetTaskByIdAsync(int id)
     {
-        var task = await _unitOfWork.Tasks.GetByIdAsync(id);
+        var task = await _taskRepository.GetByIdAsync(id);
         return task == null ? null : MapToTaskDto(task);
     }
 
@@ -69,7 +71,7 @@ public class TaskService : ITaskService
         // Validate assigned user exists if specified
         if (request.AssignedToId.HasValue)
         {
-            var assignedUser = await _unitOfWork.Users.GetByIdAsync(request.AssignedToId.Value);
+            var assignedUser = await _userRepository.GetByIdAsync(request.AssignedToId.Value);
             if (assignedUser == null || !assignedUser.IsActive)
             {
                 throw new InvalidOperationException("Assigned user does not exist or is inactive");
@@ -87,19 +89,19 @@ public class TaskService : ITaskService
             AssignedToId = request.AssignedToId
         };
 
-        await _unitOfWork.Tasks.AddAsync(task);
-        await _unitOfWork.SaveChangesAsync();
+        await _taskRepository.AddAsync(task);
+        await _taskRepository.SaveChangesAsync();
 
         _logger.LogInformation("Task created: {Title} by user {UserId}", task.Title, createdById);
 
         // Fetch the task again to get navigation properties
-        var createdTask = await _unitOfWork.Tasks.GetByIdAsync(task.Id);
+        var createdTask = await _taskRepository.GetByIdAsync(task.Id);
         return MapToTaskDto(createdTask!);
     }
 
     public async Task<TaskDto> UpdateTaskAsync(int id, UpdateTaskRequest request, int currentUserId, string userRole)
     {
-        var task = await _unitOfWork.Tasks.GetByIdAsync(id);
+        var task = await _taskRepository.GetByIdAsync(id);
         if (task == null)
         {
             throw new InvalidOperationException("Task not found");
@@ -114,7 +116,7 @@ public class TaskService : ITaskService
         // Validate assigned user exists if specified
         if (request.AssignedToId.HasValue)
         {
-            var assignedUser = await _unitOfWork.Users.GetByIdAsync(request.AssignedToId.Value);
+            var assignedUser = await _userRepository.GetByIdAsync(request.AssignedToId.Value);
             if (assignedUser == null || !assignedUser.IsActive)
             {
                 throw new InvalidOperationException("Assigned user does not exist or is inactive");
@@ -128,19 +130,19 @@ public class TaskService : ITaskService
         task.DueDate = request.DueDate;
         task.AssignedToId = request.AssignedToId;
 
-        await _unitOfWork.Tasks.UpdateAsync(task);
-        await _unitOfWork.SaveChangesAsync();
+        await _taskRepository.UpdateAsync(task);
+        await _taskRepository.SaveChangesAsync();
 
         _logger.LogInformation("Task updated: {TaskId} by user {UserId}", id, currentUserId);
 
         // Fetch the task again to get updated navigation properties
-        var updatedTask = await _unitOfWork.Tasks.GetByIdAsync(task.Id);
+        var updatedTask = await _taskRepository.GetByIdAsync(task.Id);
         return MapToTaskDto(updatedTask!);
     }
 
     public async Task<bool> DeleteTaskAsync(int id, int currentUserId, string userRole)
     {
-        var task = await _unitOfWork.Tasks.GetByIdAsync(id);
+        var task = await _taskRepository.GetByIdAsync(id);
         if (task == null)
         {
             return false;
@@ -152,8 +154,8 @@ public class TaskService : ITaskService
             throw new UnauthorizedAccessException("You don't have permission to delete this task");
         }
 
-        await _unitOfWork.Tasks.DeleteAsync(task);
-        await _unitOfWork.SaveChangesAsync();
+        await _taskRepository.DeleteAsync(task);
+        await _taskRepository.SaveChangesAsync();
 
         _logger.LogInformation("Task deleted: {TaskId} by user {UserId}", id, currentUserId);
 

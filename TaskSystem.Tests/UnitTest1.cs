@@ -28,7 +28,7 @@ public class AuthServiceTests
     {
         // Arrange
         using var context = GetInMemoryContext();
-        var unitOfWork = new UnitOfWork(context);
+        var userRepository = new UserRepository(context);
         var mockJwtService = new Mock<IJwtTokenService>();
         var mockEmailService = new Mock<IEmailService>();
         var mockLogger = new Mock<ILogger<AuthService>>();
@@ -45,14 +45,14 @@ public class AuthServiceTests
             IsActive = true
         };
         
-        await unitOfWork.Users.AddAsync(user);
-        await unitOfWork.SaveChangesAsync();
+        await userRepository.AddAsync(user);
+        await userRepository.SaveChangesAsync();
 
         mockJwtService.Setup(x => x.GenerateAccessToken(It.IsAny<User>())).Returns("test-token");
         mockJwtService.Setup(x => x.GenerateRefreshToken()).Returns("refresh-token");
         mockJwtService.Setup(x => x.GetTokenExpiration("test-token")).Returns(DateTime.UtcNow.AddHours(1));
 
-        var authService = new AuthService(unitOfWork, mockJwtService.Object, mockEmailService.Object, mockLogger.Object);
+        var authService = new AuthService(userRepository, mockJwtService.Object, mockEmailService.Object, mockLogger.Object);
 
         var loginRequest = new LoginRequest
         {
@@ -75,12 +75,12 @@ public class AuthServiceTests
     {
         // Arrange
         using var context = GetInMemoryContext();
-        var unitOfWork = new UnitOfWork(context);
+        var userRepository = new UserRepository(context);
         var mockJwtService = new Mock<IJwtTokenService>();
         var mockEmailService = new Mock<IEmailService>();
         var mockLogger = new Mock<ILogger<AuthService>>();
 
-        var authService = new AuthService(unitOfWork, mockJwtService.Object, mockEmailService.Object, mockLogger.Object);
+        var authService = new AuthService(userRepository, mockJwtService.Object, mockEmailService.Object, mockLogger.Object);
 
         var loginRequest = new LoginRequest
         {
@@ -97,7 +97,7 @@ public class AuthServiceTests
     {
         // Arrange
         using var context = GetInMemoryContext();
-        var unitOfWork = new UnitOfWork(context);
+        var userRepository = new UserRepository(context);
         var mockJwtService = new Mock<IJwtTokenService>();
         var mockEmailService = new Mock<IEmailService>();
         var mockLogger = new Mock<ILogger<AuthService>>();
@@ -106,7 +106,7 @@ public class AuthServiceTests
         mockJwtService.Setup(x => x.GenerateRefreshToken()).Returns("refresh-token");
         mockJwtService.Setup(x => x.GetTokenExpiration("test-token")).Returns(DateTime.UtcNow.AddHours(1));
 
-        var authService = new AuthService(unitOfWork, mockJwtService.Object, mockEmailService.Object, mockLogger.Object);
+        var authService = new AuthService(userRepository, mockJwtService.Object, mockEmailService.Object, mockLogger.Object);
 
         var registerRequest = new RegisterRequest
         {

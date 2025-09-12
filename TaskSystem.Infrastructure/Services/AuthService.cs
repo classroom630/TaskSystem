@@ -8,18 +8,18 @@ namespace TaskSystem.Infrastructure.Services;
 
 public class AuthService : IAuthService
 {
-    private readonly IUnitOfWork _unitOfWork;
+    private readonly IUserRepository _userRepository;
     private readonly IJwtTokenService _jwtTokenService;
     private readonly IEmailService _emailService;
     private readonly ILogger<AuthService> _logger;
 
     public AuthService(
-        IUnitOfWork unitOfWork,
+        IUserRepository userRepository,
         IJwtTokenService jwtTokenService,
         IEmailService emailService,
         ILogger<AuthService> logger)
     {
-        _unitOfWork = unitOfWork;
+        _userRepository = userRepository;
         _jwtTokenService = jwtTokenService;
         _emailService = emailService;
         _logger = logger;
@@ -27,7 +27,7 @@ public class AuthService : IAuthService
 
     public async Task<AuthResponse> LoginAsync(LoginRequest request)
     {
-        var user = await _unitOfWork.Users.GetByEmailAsync(request.Email);
+        var user = await _userRepository.GetByEmailAsync(request.Email);
         
         if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash) || !user.IsActive)
         {
@@ -40,8 +40,8 @@ public class AuthService : IAuthService
         user.RefreshToken = refreshToken;
         user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
 
-        await _unitOfWork.Users.UpdateAsync(user);
-        await _unitOfWork.SaveChangesAsync();
+        await _userRepository.UpdateAsync(user);
+        await _userRepository.SaveChangesAsync();
 
         _logger.LogInformation("User {Email} logged in successfully", user.Email);
 
@@ -56,7 +56,7 @@ public class AuthService : IAuthService
 
     public async Task<AuthResponse> RegisterAsync(RegisterRequest request)
     {
-        var existingUser = await _unitOfWork.Users.GetByEmailAsync(request.Email);
+        var existingUser = await _userRepository.GetByEmailAsync(request.Email);
         if (existingUser != null)
         {
             throw new InvalidOperationException("User with this email already exists");
@@ -72,8 +72,8 @@ public class AuthService : IAuthService
             IsActive = true
         };
 
-        await _unitOfWork.Users.AddAsync(user);
-        await _unitOfWork.SaveChangesAsync();
+        await _userRepository.AddAsync(user);
+        await _userRepository.SaveChangesAsync();
 
         _logger.LogInformation("New user registered: {Email}", user.Email);
 
@@ -94,8 +94,8 @@ public class AuthService : IAuthService
         user.RefreshToken = refreshToken;
         user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
 
-        await _unitOfWork.Users.UpdateAsync(user);
-        await _unitOfWork.SaveChangesAsync();
+        await _userRepository.UpdateAsync(user);
+        await _userRepository.SaveChangesAsync();
 
         return new AuthResponse
         {
@@ -116,7 +116,7 @@ public class AuthService : IAuthService
             throw new SecurityTokenException("Invalid token");
         }
 
-        var user = await _unitOfWork.Users.GetByIdAsync(userId);
+        var user = await _userRepository.GetByIdAsync(userId);
         
         if (user == null || user.RefreshToken != request.RefreshToken || 
             user.RefreshTokenExpiryTime <= DateTime.UtcNow || !user.IsActive)
@@ -130,8 +130,8 @@ public class AuthService : IAuthService
         user.RefreshToken = newRefreshToken;
         user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
 
-        await _unitOfWork.Users.UpdateAsync(user);
-        await _unitOfWork.SaveChangesAsync();
+        await _userRepository.UpdateAsync(user);
+        await _userRepository.SaveChangesAsync();
 
         return new AuthResponse
         {
@@ -144,7 +144,7 @@ public class AuthService : IAuthService
 
     public async Task<bool> RevokeTokenAsync(string refreshToken)
     {
-        var user = await _unitOfWork.Users.GetByRefreshTokenAsync(refreshToken);
+        var user = await _userRepository.GetByRefreshTokenAsync(refreshToken);
         
         if (user == null)
         {
@@ -154,8 +154,8 @@ public class AuthService : IAuthService
         user.RefreshToken = null;
         user.RefreshTokenExpiryTime = null;
 
-        await _unitOfWork.Users.UpdateAsync(user);
-        await _unitOfWork.SaveChangesAsync();
+        await _userRepository.UpdateAsync(user);
+        await _userRepository.SaveChangesAsync();
 
         return true;
     }

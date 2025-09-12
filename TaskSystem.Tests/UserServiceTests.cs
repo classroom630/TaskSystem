@@ -25,7 +25,8 @@ public class UserServiceTests
     {
         // Arrange
         using var context = GetInMemoryContext();
-        var unitOfWork = new UnitOfWork(context);
+        var userRepository = new UserRepository(context);
+        var taskRepository = new TaskRepository(context);
         var mockLogger = new Mock<ILogger<UserService>>();
 
         // Add test users
@@ -37,11 +38,11 @@ public class UserServiceTests
 
         foreach (var user in users)
         {
-            await unitOfWork.Users.AddAsync(user);
+            await userRepository.AddAsync(user);
         }
-        await unitOfWork.SaveChangesAsync();
+        await userRepository.SaveChangesAsync();
 
-        var userService = new UserService(unitOfWork, mockLogger.Object);
+        var userService = new UserService(userRepository, taskRepository, mockLogger.Object);
 
         // Act
         var result = await userService.GetAllUsersAsync();
@@ -57,10 +58,11 @@ public class UserServiceTests
     {
         // Arrange
         using var context = GetInMemoryContext();
-        var unitOfWork = new UnitOfWork(context);
+        var userRepository = new UserRepository(context);
+        var taskRepository = new TaskRepository(context);
         var mockLogger = new Mock<ILogger<UserService>>();
 
-        var userService = new UserService(unitOfWork, mockLogger.Object);
+        var userService = new UserService(userRepository, taskRepository, mockLogger.Object);
 
         var createRequest = new CreateUserRequest
         {
@@ -87,7 +89,8 @@ public class UserServiceTests
     {
         // Arrange
         using var context = GetInMemoryContext();
-        var unitOfWork = new UnitOfWork(context);
+        var userRepository = new UserRepository(context);
+        var taskRepository = new TaskRepository(context);
         var mockLogger = new Mock<ILogger<UserService>>();
 
         // Add existing user
@@ -101,10 +104,10 @@ public class UserServiceTests
             IsActive = true
         };
         
-        await unitOfWork.Users.AddAsync(existingUser);
-        await unitOfWork.SaveChangesAsync();
+        await userRepository.AddAsync(existingUser);
+        await userRepository.SaveChangesAsync();
 
-        var userService = new UserService(unitOfWork, mockLogger.Object);
+        var userService = new UserService(userRepository, taskRepository, mockLogger.Object);
 
         var createRequest = new CreateUserRequest
         {
@@ -124,7 +127,8 @@ public class UserServiceTests
     {
         // Arrange
         using var context = GetInMemoryContext();
-        var unitOfWork = new UnitOfWork(context);
+        var userRepository = new UserRepository(context);
+        var taskRepository = new TaskRepository(context);
         var mockLogger = new Mock<ILogger<UserService>>();
 
         var user = new User
@@ -137,10 +141,10 @@ public class UserServiceTests
             IsActive = true
         };
         
-        await unitOfWork.Users.AddAsync(user);
-        await unitOfWork.SaveChangesAsync();
+        await userRepository.AddAsync(user);
+        await userRepository.SaveChangesAsync();
 
-        var userService = new UserService(unitOfWork, mockLogger.Object);
+        var userService = new UserService(userRepository, taskRepository, mockLogger.Object);
 
         // Act
         var result = await userService.AssignRoleAsync(user.Id, UserRoles.Manager);
@@ -148,7 +152,7 @@ public class UserServiceTests
         // Assert
         Assert.True(result);
         
-        var updatedUser = await unitOfWork.Users.GetByIdAsync(user.Id);
+        var updatedUser = await userRepository.GetByIdAsync(user.Id);
         Assert.Equal(UserRoles.Manager, updatedUser!.Role);
     }
 
@@ -157,10 +161,11 @@ public class UserServiceTests
     {
         // Arrange
         using var context = GetInMemoryContext();
-        var unitOfWork = new UnitOfWork(context);
+        var userRepository = new UserRepository(context);
+        var taskRepository = new TaskRepository(context);
         var mockLogger = new Mock<ILogger<UserService>>();
 
-        var userService = new UserService(unitOfWork, mockLogger.Object);
+        var userService = new UserService(userRepository, taskRepository, mockLogger.Object);
 
         // Act & Assert
         await Assert.ThrowsAsync<InvalidOperationException>(() => userService.AssignRoleAsync(1, "InvalidRole"));

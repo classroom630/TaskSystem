@@ -69,4 +69,9 @@ public class Repository<T> : IRepository<T> where T : BaseEntity
     {
         return await _dbSet.CountAsync(predicate);
     }
+
+    public virtual async Task<int> SaveChangesAsync()
+    {
+        return await _context.SaveChangesAsync();
+    }
 }

@@ -25,7 +25,8 @@ public class TaskServiceTests
     {
         // Arrange
         using var context = GetInMemoryContext();
-        var unitOfWork = new UnitOfWork(context);
+        var userRepository = new UserRepository(context);
+        var taskRepository = new TaskRepository(context);
         var mockLogger = new Mock<ILogger<TaskService>>();
 
         // Add test user
@@ -39,10 +40,10 @@ public class TaskServiceTests
             IsActive = true
         };
         
-        await unitOfWork.Users.AddAsync(user);
-        await unitOfWork.SaveChangesAsync();
+        await userRepository.AddAsync(user);
+        await userRepository.SaveChangesAsync();
 
-        var taskService = new TaskService(unitOfWork, mockLogger.Object);
+        var taskService = new TaskService(taskRepository, userRepository, mockLogger.Object);
 
         var createRequest = new CreateTaskRequest
         {
@@ -69,7 +70,8 @@ public class TaskServiceTests
     {
         // Arrange
         using var context = GetInMemoryContext();
-        var unitOfWork = new UnitOfWork(context);
+        var userRepository = new UserRepository(context);
+        var taskRepository = new TaskRepository(context);
         var mockLogger = new Mock<ILogger<TaskService>>();
 
         // Add test users
@@ -77,10 +79,10 @@ public class TaskServiceTests
         var user1 = new User { FirstName = "User", LastName = "One", Email = "user1@example.com", PasswordHash = "hash", Role = UserRoles.User, IsActive = true };
         var user2 = new User { FirstName = "User", LastName = "Two", Email = "user2@example.com", PasswordHash = "hash", Role = UserRoles.User, IsActive = true };
 
-        await unitOfWork.Users.AddAsync(admin);
-        await unitOfWork.Users.AddAsync(user1);
-        await unitOfWork.Users.AddAsync(user2);
-        await unitOfWork.SaveChangesAsync();
+        await userRepository.AddAsync(admin);
+        await userRepository.AddAsync(user1);
+        await userRepository.AddAsync(user2);
+        await userRepository.SaveChangesAsync();
 
         // Add test tasks
         var tasks = new List<TaskItem>
@@ -92,11 +94,11 @@ public class TaskServiceTests
 
         foreach (var task in tasks)
         {
-            await unitOfWork.Tasks.AddAsync(task);
+            await taskRepository.AddAsync(task);
         }
-        await unitOfWork.SaveChangesAsync();
+        await userRepository.SaveChangesAsync();
 
-        var taskService = new TaskService(unitOfWork, mockLogger.Object);
+        var taskService = new TaskService(taskRepository, userRepository, mockLogger.Object);
 
         // Act
         var result = await taskService.GetTasksForUserAsync(admin.Id, UserRoles.Admin);
@@ -110,16 +112,17 @@ public class TaskServiceTests
     {
         // Arrange
         using var context = GetInMemoryContext();
-        var unitOfWork = new UnitOfWork(context);
+        var userRepository = new UserRepository(context);
+        var taskRepository = new TaskRepository(context);
         var mockLogger = new Mock<ILogger<TaskService>>();
 
         // Add test users
         var user1 = new User { FirstName = "User", LastName = "One", Email = "user1@example.com", PasswordHash = "hash", Role = UserRoles.User, IsActive = true };
         var user2 = new User { FirstName = "User", LastName = "Two", Email = "user2@example.com", PasswordHash = "hash", Role = UserRoles.User, IsActive = true };
 
-        await unitOfWork.Users.AddAsync(user1);
-        await unitOfWork.Users.AddAsync(user2);
-        await unitOfWork.SaveChangesAsync();
+        await userRepository.AddAsync(user1);
+        await userRepository.AddAsync(user2);
+        await userRepository.SaveChangesAsync();
 
         // Add test tasks
         var tasks = new List<TaskItem>
@@ -131,11 +134,11 @@ public class TaskServiceTests
 
         foreach (var task in tasks)
         {
-            await unitOfWork.Tasks.AddAsync(task);
+            await taskRepository.AddAsync(task);
         }
-        await unitOfWork.SaveChangesAsync();
+        await userRepository.SaveChangesAsync();
 
-        var taskService = new TaskService(unitOfWork, mockLogger.Object);
+        var taskService = new TaskService(taskRepository, userRepository, mockLogger.Object);
 
         // Act
         var result = await taskService.GetTasksForUserAsync(user1.Id, UserRoles.User);
@@ -150,7 +153,8 @@ public class TaskServiceTests
     {
         // Arrange
         using var context = GetInMemoryContext();
-        var unitOfWork = new UnitOfWork(context);
+        var userRepository = new UserRepository(context);
+        var taskRepository = new TaskRepository(context);
         var mockLogger = new Mock<ILogger<TaskService>>();
 
         var user = new User
@@ -163,8 +167,8 @@ public class TaskServiceTests
             IsActive = true
         };
         
-        await unitOfWork.Users.AddAsync(user);
-        await unitOfWork.SaveChangesAsync();
+        await userRepository.AddAsync(user);
+        await userRepository.SaveChangesAsync();
 
         var task = new TaskItem
         {
@@ -174,10 +178,10 @@ public class TaskServiceTests
             Priority = TaskPriority.Medium
         };
         
-        await unitOfWork.Tasks.AddAsync(task);
-        await unitOfWork.SaveChangesAsync();
+        await taskRepository.AddAsync(task);
+        await userRepository.SaveChangesAsync();
 
-        var taskService = new TaskService(unitOfWork, mockLogger.Object);
+        var taskService = new TaskService(taskRepository, userRepository, mockLogger.Object);
 
         var updateRequest = new UpdateTaskRequest
         {
@@ -203,15 +207,16 @@ public class TaskServiceTests
     {
         // Arrange
         using var context = GetInMemoryContext();
-        var unitOfWork = new UnitOfWork(context);
+        var userRepository = new UserRepository(context);
+        var taskRepository = new TaskRepository(context);
         var mockLogger = new Mock<ILogger<TaskService>>();
 
         var user1 = new User { FirstName = "User", LastName = "One", Email = "user1@example.com", PasswordHash = "hash", Role = UserRoles.User, IsActive = true };
         var user2 = new User { FirstName = "User", LastName = "Two", Email = "user2@example.com", PasswordHash = "hash", Role = UserRoles.User, IsActive = true };
 
-        await unitOfWork.Users.AddAsync(user1);
-        await unitOfWork.Users.AddAsync(user2);
-        await unitOfWork.SaveChangesAsync();
+        await userRepository.AddAsync(user1);
+        await userRepository.AddAsync(user2);
+        await userRepository.SaveChangesAsync();
 
         var task = new TaskItem
         {
@@ -221,10 +226,10 @@ public class TaskServiceTests
             Priority = TaskPriority.Medium
         };
         
-        await unitOfWork.Tasks.AddAsync(task);
-        await unitOfWork.SaveChangesAsync();
+        await taskRepository.AddAsync(task);
+        await userRepository.SaveChangesAsync();
 
-        var taskService = new TaskService(unitOfWork, mockLogger.Object);
+        var taskService = new TaskService(taskRepository, userRepository, mockLogger.Object);
 
         var updateRequest = new UpdateTaskRequest
         {
