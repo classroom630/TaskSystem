@@ -1,11 +1,14 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Serilog;
 using System.Text;
 using TaskSystem.API.Middleware;
+using TaskSystem.Core.Entities;
 using TaskSystem.Core.Interfaces;
+using TaskSystem.Core.Mappings;
 using TaskSystem.Infrastructure.Data;
 using TaskSystem.Infrastructure.Repositories;
 using TaskSystem.Infrastructure.Services;
@@ -29,6 +32,22 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlite(
         builder.Configuration.GetConnectionString("DefaultConnection"),
         b => b.MigrationsAssembly("TaskSystem.API")));
+
+// Add Identity
+builder.Services.AddIdentity<User, ApplicationRole>(options =>
+{
+    options.Password.RequireDigit = true;
+    options.Password.RequiredLength = 6;
+    options.Password.RequireNonAlphanumeric = true;
+    options.Password.RequireUppercase = true;
+    options.Password.RequireLowercase = true;
+    options.User.RequireUniqueEmail = true;
+})
+.AddEntityFrameworkStores<ApplicationDbContext>()
+.AddDefaultTokenProviders();
+
+// Add AutoMapper
+builder.Services.AddAutoMapper(typeof(MappingProfile));
 
 // Add repositories and services
 builder.Services.AddScoped<IUserRepository, UserRepository>();
@@ -138,11 +157,23 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-// Ensure database is created
+// Ensure database is created and migrated
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<ApplicationRole>>();
+    
     context.Database.EnsureCreated();
+    
+    // Seed roles if they don't exist
+    foreach (var role in UserRoles.AllRoles)
+    {
+        if (!await roleManager.RoleExistsAsync(role))
+        {
+            await roleManager.CreateAsync(new ApplicationRole(role));
+        }
+    }
 }
 
 try

@@ -1,15 +1,16 @@
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using TaskSystem.Core.Entities;
 
 namespace TaskSystem.Infrastructure.Data;
 
-public class ApplicationDbContext : DbContext
+public class ApplicationDbContext : IdentityDbContext<User, ApplicationRole, int>
 {
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
     {
     }
 
-    public DbSet<User> Users { get; set; }
     public DbSet<TaskItem> Tasks { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -19,13 +20,8 @@ public class ApplicationDbContext : DbContext
         // User configuration
         modelBuilder.Entity<User>(entity =>
         {
-            entity.HasKey(e => e.Id);
-            entity.HasIndex(e => e.Email).IsUnique();
             entity.Property(e => e.FirstName).HasMaxLength(100).IsRequired();
             entity.Property(e => e.LastName).HasMaxLength(100).IsRequired();
-            entity.Property(e => e.Email).HasMaxLength(256).IsRequired();
-            entity.Property(e => e.PasswordHash).IsRequired();
-            entity.Property(e => e.Role).HasMaxLength(50).IsRequired();
             entity.Ignore(e => e.FullName); // Computed property
         });
 
@@ -54,18 +50,41 @@ public class ApplicationDbContext : DbContext
 
     private void SeedData(ModelBuilder modelBuilder)
     {
+        // Seed roles
+        var roles = new[]
+        {
+            new ApplicationRole { Id = 1, Name = UserRoles.Admin, NormalizedName = UserRoles.Admin.ToUpper() },
+            new ApplicationRole { Id = 2, Name = UserRoles.Manager, NormalizedName = UserRoles.Manager.ToUpper() },
+            new ApplicationRole { Id = 3, Name = UserRoles.User, NormalizedName = UserRoles.User.ToUpper() }
+        };
+
+        modelBuilder.Entity<ApplicationRole>().HasData(roles);
+
         // Seed default admin user
-        modelBuilder.Entity<User>().HasData(new User
+        var passwordHasher = new PasswordHasher<User>();
+        var adminUser = new User
         {
             Id = 1,
             FirstName = "System",
             LastName = "Admin",
             Email = "admin@tasksystem.com",
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin123!"),
-            Role = UserRoles.Admin,
+            NormalizedEmail = "ADMIN@TASKSYSTEM.COM",
+            UserName = "admin@tasksystem.com",
+            NormalizedUserName = "ADMIN@TASKSYSTEM.COM",
+            EmailConfirmed = true,
             IsActive = true,
-            CreatedAt = DateTime.UtcNow
-        });
+            CreatedAt = DateTime.UtcNow,
+            SecurityStamp = Guid.NewGuid().ToString()
+        };
+
+        adminUser.PasswordHash = passwordHasher.HashPassword(adminUser, "Admin123!");
+
+        modelBuilder.Entity<User>().HasData(adminUser);
+
+        // Assign admin role to admin user
+        modelBuilder.Entity<IdentityUserRole<int>>().HasData(
+            new IdentityUserRole<int> { UserId = 1, RoleId = 1 }
+        );
     }
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
@@ -73,6 +92,18 @@ public class ApplicationDbContext : DbContext
         var entries = ChangeTracker.Entries<BaseEntity>();
 
         foreach (var entry in entries)
+        {
+            switch (entry.State)
+            {
+                case EntityState.Modified:
+                    entry.Entity.UpdatedAt = DateTime.UtcNow;
+                    break;
+            }
+        }
+
+        // Handle User entity updates (since it doesn't inherit from BaseEntity anymore)
+        var userEntries = ChangeTracker.Entries<User>();
+        foreach (var entry in userEntries)
         {
             switch (entry.State)
             {
