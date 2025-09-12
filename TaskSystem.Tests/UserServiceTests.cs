@@ -32,8 +32,8 @@ public class UserServiceTests
         // Add test users
         var users = new List<User>
         {
-            new() { FirstName = "John", LastName = "Doe", Email = "john@example.com", // Role = UserRoles.User, IsActive = true, PasswordHash = "hash1" },
-            new() { FirstName = "Jane", LastName = "Smith", Email = "jane@example.com", // Role = UserRoles.Manager, IsActive = true, PasswordHash = "hash2" }
+            new() { FirstName = "John", LastName = "Doe", Email = "john@example.com", Role = UserRoles.User, IsActive = true, PasswordHash = "hash1" },
+            new() { FirstName = "Jane", LastName = "Smith", Email = "jane@example.com", Role = UserRoles.Manager, IsActive = true, PasswordHash = "hash2" }
         };
 
         foreach (var user in users)
@@ -70,7 +70,7 @@ public class UserServiceTests
             LastName = "User",
             Email = "testuser@example.com",
             Password = "Password123!",
-            // Role = UserRoles.User
+            Role = UserRoles.User
         };
 
         // Act
@@ -100,7 +100,7 @@ public class UserServiceTests
             LastName = "User",
             Email = "existing@example.com",
             PasswordHash = "hash",
-            // Role = UserRoles.User,
+            Role = UserRoles.User,
             IsActive = true
         };
         
@@ -115,7 +115,7 @@ public class UserServiceTests
             LastName = "User",
             Email = "existing@example.com", // Same email
             Password = "Password123!",
-            // Role = UserRoles.User
+            Role = UserRoles.User
         };
 
         // Act & Assert
@@ -136,9 +136,8 @@ public class UserServiceTests
             FirstName = "Test",
             LastName = "User",
             Email = "test@example.com",
-            UserName = "test@example.com",
             PasswordHash = "hash",
-            // Role = UserRoles.User,
+            Role = UserRoles.User,
             IsActive = true
         };
         
