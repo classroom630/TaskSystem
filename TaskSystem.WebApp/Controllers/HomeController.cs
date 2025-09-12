@@ -15,6 +15,12 @@ namespace TaskSystem.WebApp.Controllers
 
         public IActionResult Index()
         {
+            // If user is authenticated, redirect to dashboard
+            if (User.Identity?.IsAuthenticated == true)
+            {
+                return RedirectToAction("Index", "Dashboard");
+            }
+            
             return View();
         }
 

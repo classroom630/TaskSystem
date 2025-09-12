@@ -3,6 +3,92 @@
 }
 
 <div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+    <div class="jumbotron bg-primary text-white p-5 rounded mb-4">
+        <h1 class="display-4">
+            <i class="bi bi-list-task"></i> Welcome to Task System
+        </h1>
+        <p class="lead">A comprehensive task management solution with role-based access control and JWT authentication.</p>
+        <hr class="my-4">
+        <p class="mb-4">Manage your tasks efficiently with our modern, secure platform.</p>
+        @if (User.Identity?.IsAuthenticated == true)
+        {
+            <a class="btn btn-light btn-lg" asp-controller="Dashboard" asp-action="Index">
+                <i class="bi bi-speedometer2"></i> Go to Dashboard
+            </a>
+        }
+        else
+        {
+            <div class="d-flex justify-content-center gap-3">
+                <a class="btn btn-light btn-lg" asp-controller="Auth" asp-action="Login">
+                    <i class="bi bi-box-arrow-in-right"></i> Login
+                </a>
+                <a class="btn btn-outline-light btn-lg" asp-controller="Auth" asp-action="Register">
+                    <i class="bi bi-person-plus"></i> Register
+                </a>
+            </div>
+        }
+    </div>
 </div>
+
+@if (User.Identity?.IsAuthenticated != true)
+{
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-shield-lock text-primary" style="font-size: 3rem;"></i>
+                    <h5 class="card-title mt-3">Secure Authentication</h5>
+                    <p class="card-text">JWT-based authentication with refresh tokens ensures your data is secure and your sessions are managed efficiently.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-people text-success" style="font-size: 3rem;"></i>
+                    <h5 class="card-title mt-3">Role-Based Access</h5>
+                    <p class="card-text">Three distinct roles (Admin, Manager, User) with appropriate permissions for different levels of access.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-list-check text-info" style="font-size: 3rem;"></i>
+                    <h5 class="card-title mt-3">Task Management</h5>
+                    <p class="card-text">Create, assign, and track tasks with priorities, due dates, and status updates in a clean interface.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="bi bi-info-circle"></i> Demo Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Admin Access:</h6>
+                            <ul>
+                                <li>Email: <code>admin@tasksystem.com</code></li>
+                                <li>Password: <code>Admin123!</code></li>
+                                <li>Can manage users and view all tasks</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>User Access:</h6>
+                            <ul>
+                                <li>Email: <code>john@example.com</code></li>
+                                <li>Password: <code>Password123!</code></li>
+                                <li>Can manage own tasks only</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
