@@ -1,8 +1,71 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Home";
 }
 
 <div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+    <h1 class="display-4">
+        <i class="fas fa-tasks text-primary"></i> Welcome to Task Management System
+    </h1>
+    <p class="lead">Organize your tasks efficiently and boost your productivity</p>
+</div>
+
+<div class="row mt-5">
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="fas fa-plus-circle fa-3x text-success mb-3"></i>
+                <h5 class="card-title">Create Tasks</h5>
+                <p class="card-text">Easily create new tasks with titles, descriptions, priorities, and due dates.</p>
+                <a asp-controller="Tasks" asp-action="Create" class="btn btn-success">Create New Task</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="fas fa-list fa-3x text-primary mb-3"></i>
+                <h5 class="card-title">Manage Tasks</h5>
+                <p class="card-text">View, edit, and organize all your tasks in one convenient location.</p>
+                <a asp-controller="Tasks" asp-action="Index" class="btn btn-primary">View All Tasks</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="fas fa-chart-line fa-3x text-info mb-3"></i>
+                <h5 class="card-title">Track Progress</h5>
+                <p class="card-text">Monitor task status, priorities, and completion rates to stay productive.</p>
+                <a asp-controller="Tasks" asp-action="Status" asp-route-status="2" class="btn btn-info">View Completed</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-5">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-info-circle"></i> Features</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-check text-success"></i> Create and manage tasks</li>
+                            <li><i class="fas fa-check text-success"></i> Set priorities (Low, Medium, High, Critical)</li>
+                            <li><i class="fas fa-check text-success"></i> Track task status (Pending, In Progress, Completed, Cancelled)</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-check text-success"></i> Set due dates and deadlines</li>
+                            <li><i class="fas fa-check text-success"></i> Filter tasks by status</li>
+                            <li><i class="fas fa-check text-success"></i> Responsive design for all devices</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>

@@ -1,0 +1,127 @@
+@model TaskSystem.WebApp.Models.TaskItemViewModel
+
+@{
+    ViewData["Title"] = "Task Details";
+}
+
+<div class="d-flex align-items-center mb-4">
+    <a asp-action="Index" class="btn btn-outline-secondary me-3">
+        <i class="fas fa-arrow-left"></i> Back to Tasks
+    </a>
+    <h2>@ViewData["Title"]</h2>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">@Model.Title</h5>
+                <span class="badge @GetStatusBadgeClass(Model.Status)">@Model.Status.ToString()</span>
+            </div>
+            <div class="card-body">
+                @if (!string.IsNullOrEmpty(Model.Description))
+                {
+                    <div class="mb-3">
+                        <h6>Description</h6>
+                        <p class="text-muted">@Model.Description</p>
+                    </div>
+                }
+                
+                <div class="row">
+                    <div class="col-sm-6">
+                        <div class="mb-3">
+                            <h6>Priority</h6>
+                            <span class="badge @GetPriorityBadgeClass(Model.Priority)">@Model.Priority</span>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="mb-3">
+                            <h6>Status</h6>
+                            <span class="badge @GetStatusBadgeClass(Model.Status)">@Model.Status.ToString().Replace("InProgress", "In Progress")</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-sm-6">
+                        <div class="mb-3">
+                            <h6>Created</h6>
+                            <p class="text-muted mb-0">
+                                <i class="fas fa-calendar-plus"></i> @Model.CreatedAt.ToString("MMMM dd, yyyy 'at' h:mm tt")
+                            </p>
+                        </div>
+                    </div>
+                    @if (Model.DueDate.HasValue)
+                    {
+                        <div class="col-sm-6">
+                            <div class="mb-3">
+                                <h6>Due Date</h6>
+                                <p class="text-muted mb-0">
+                                    <i class="fas fa-clock"></i> @Model.DueDate.Value.ToString("MMMM dd, yyyy 'at' h:mm tt")
+                                    @if (Model.DueDate < DateTime.Now && Model.Status != TaskSystem.WebApp.Models.TaskItemStatus.Completed)
+                                    {
+                                        <span class="badge bg-danger ms-2">Overdue</span>
+                                    }
+                                </p>
+                            </div>
+                        </div>
+                    }
+                </div>
+                
+                @if (Model.CompletedAt.HasValue)
+                {
+                    <div class="mb-3">
+                        <h6>Completed</h6>
+                        <p class="text-success mb-0">
+                            <i class="fas fa-check-circle"></i> @Model.CompletedAt.Value.ToString("MMMM dd, yyyy 'at' h:mm tt")
+                        </p>
+                    </div>
+                }
+            </div>
+            <div class="card-footer">
+                <div class="btn-group" role="group">
+                    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">
+                        <i class="fas fa-edit"></i> Edit
+                    </a>
+                    @if (Model.Status != TaskSystem.WebApp.Models.TaskItemStatus.Completed)
+                    {
+                        <form asp-action="MarkComplete" asp-route-id="@Model.Id" method="post" class="d-inline">
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-check"></i> Mark Complete
+                            </button>
+                        </form>
+                    }
+                    <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-outline-danger">
+                        <i class="fas fa-trash"></i> Delete
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@functions {
+    string GetStatusBadgeClass(TaskSystem.WebApp.Models.TaskItemStatus status)
+    {
+        return status switch
+        {
+            TaskSystem.WebApp.Models.TaskItemStatus.Pending => "bg-warning text-dark",
+            TaskSystem.WebApp.Models.TaskItemStatus.InProgress => "bg-info",
+            TaskSystem.WebApp.Models.TaskItemStatus.Completed => "bg-success",
+            TaskSystem.WebApp.Models.TaskItemStatus.Cancelled => "bg-danger",
+            _ => "bg-secondary"
+        };
+    }
+
+    string GetPriorityBadgeClass(TaskSystem.WebApp.Models.TaskPriority priority)
+    {
+        return priority switch
+        {
+            TaskSystem.WebApp.Models.TaskPriority.Low => "bg-secondary",
+            TaskSystem.WebApp.Models.TaskPriority.Medium => "bg-primary",
+            TaskSystem.WebApp.Models.TaskPriority.High => "bg-warning text-dark",
+            TaskSystem.WebApp.Models.TaskPriority.Critical => "bg-danger",
+            _ => "bg-secondary"
+        };
+    }
+}

@@ -1,0 +1,147 @@
+@model IEnumerable<TaskSystem.WebApp.Models.TaskItemViewModel>
+
+@{
+    ViewData["Title"] = "Task Management";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>@ViewData["Title"]</h2>
+    <a asp-action="Create" class="btn btn-primary">
+        <i class="fas fa-plus"></i> New Task
+    </a>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<!-- Filter buttons -->
+<div class="mb-3">
+    <div class="btn-group" role="group">
+        <a asp-action="Index" class="btn btn-outline-secondary">All</a>
+        <a asp-action="Status" asp-route-status="0" class="btn btn-outline-warning">Pending</a>
+        <a asp-action="Status" asp-route-status="1" class="btn btn-outline-info">In Progress</a>
+        <a asp-action="Status" asp-route-status="2" class="btn btn-outline-success">Completed</a>
+        <a asp-action="Status" asp-route-status="3" class="btn btn-outline-danger">Cancelled</a>
+    </div>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="text-center py-5">
+        <i class="fas fa-tasks fa-3x text-muted mb-3"></i>
+        <h5>No tasks found</h5>
+        <p class="text-muted">Create your first task to get started!</p>
+        <a asp-action="Create" class="btn btn-primary">Create Task</a>
+    </div>
+}
+else
+{
+    <div class="row">
+        @foreach (var task in Model)
+        {
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0">@task.Title</h6>
+                        <span class="badge @GetStatusBadgeClass(task.Status)">
+                            @task.Status.ToString()
+                        </span>
+                    </div>
+                    <div class="card-body">
+                        @if (!string.IsNullOrEmpty(task.Description))
+                        {
+                            <p class="card-text text-muted small">@task.Description</p>
+                        }
+                        <div class="mb-2">
+                            <small class="text-muted">
+                                <strong>Priority:</strong>
+                                <span class="badge @GetPriorityBadgeClass(task.Priority)">@task.Priority</span>
+                            </small>
+                        </div>
+                        @if (task.DueDate.HasValue)
+                        {
+                            <div class="mb-2">
+                                <small class="text-muted">
+                                    <i class="fas fa-clock"></i> Due: @task.DueDate.Value.ToString("MMM dd, yyyy")
+                                </small>
+                            </div>
+                        }
+                        <div class="mb-2">
+                            <small class="text-muted">
+                                Created: @task.CreatedAt.ToString("MMM dd, yyyy")
+                            </small>
+                        </div>
+                        @if (task.CompletedAt.HasValue)
+                        {
+                            <div class="mb-2">
+                                <small class="text-success">
+                                    <i class="fas fa-check"></i> Completed: @task.CompletedAt.Value.ToString("MMM dd, yyyy")
+                                </small>
+                            </div>
+                        }
+                    </div>
+                    <div class="card-footer">
+                        <div class="btn-group w-100" role="group">
+                            <a asp-action="Details" asp-route-id="@task.Id" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a asp-action="Edit" asp-route-id="@task.Id" class="btn btn-sm btn-outline-secondary">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            @if (task.Status != TaskSystem.WebApp.Models.TaskItemStatus.Completed)
+                            {
+                                <form asp-action="MarkComplete" asp-route-id="@task.Id" method="post" class="d-inline">
+                                    <button type="submit" class="btn btn-sm btn-outline-success" title="Mark Complete">
+                                        <i class="fas fa-check"></i>
+                                    </button>
+                                </form>
+                            }
+                            <a asp-action="Delete" asp-route-id="@task.Id" class="btn btn-sm btn-outline-danger">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+@functions {
+    string GetStatusBadgeClass(TaskSystem.WebApp.Models.TaskItemStatus status)
+    {
+        return status switch
+        {
+            TaskSystem.WebApp.Models.TaskItemStatus.Pending => "bg-warning text-dark",
+            TaskSystem.WebApp.Models.TaskItemStatus.InProgress => "bg-info",
+            TaskSystem.WebApp.Models.TaskItemStatus.Completed => "bg-success",
+            TaskSystem.WebApp.Models.TaskItemStatus.Cancelled => "bg-danger",
+            _ => "bg-secondary"
+        };
+    }
+
+    string GetPriorityBadgeClass(TaskSystem.WebApp.Models.TaskPriority priority)
+    {
+        return priority switch
+        {
+            TaskSystem.WebApp.Models.TaskPriority.Low => "bg-secondary",
+            TaskSystem.WebApp.Models.TaskPriority.Medium => "bg-primary",
+            TaskSystem.WebApp.Models.TaskPriority.High => "bg-warning text-dark",
+            TaskSystem.WebApp.Models.TaskPriority.Critical => "bg-danger",
+            _ => "bg-secondary"
+        };
+    }
+}
