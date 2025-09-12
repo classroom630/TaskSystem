@@ -40,8 +40,9 @@ public class AuthServiceTests
             FirstName = "Test",
             LastName = "User",
             Email = "test@example.com",
+            UserName = "test@example.com",
             PasswordHash = passwordHash,
-            Role = UserRoles.User,
+            // Role = UserRoles.User,
             IsActive = true
         };
         
@@ -57,6 +58,7 @@ public class AuthServiceTests
         var loginRequest = new LoginRequest
         {
             Email = "test@example.com",
+            UserName = "test@example.com",
             Password = "TestPassword123!"
         };
 

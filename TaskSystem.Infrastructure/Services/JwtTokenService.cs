@@ -35,8 +35,8 @@ public class JwtTokenService : IJwtTokenService
         {
             new(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new(ClaimTypes.Name, user.FullName),
-            new(ClaimTypes.Email, user.Email),
-            new(ClaimTypes.Role, user.Role),
+            new(ClaimTypes.Email, user.Email ?? string.Empty),
+            new(ClaimTypes.Role, "User"), // TODO: Get from Identity roles
             new("userId", user.Id.ToString()),
             new("firstName", user.FirstName),
             new("lastName", user.LastName)

@@ -67,8 +67,9 @@ public class AuthService : IAuthService
             FirstName = request.FirstName,
             LastName = request.LastName,
             Email = request.Email.ToLower(),
+            UserName = request.Email.ToLower(),
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
-            Role = UserRoles.User,
+            // Role = UserRoles.User, // TODO: Use Identity roles
             IsActive = true
         };
 
@@ -167,8 +168,8 @@ public class AuthService : IAuthService
             Id = user.Id,
             FirstName = user.FirstName,
             LastName = user.LastName,
-            Email = user.Email,
-            Role = user.Role,
+            Email = user.Email ?? string.Empty,
+            Role = "User", // TODO: Get from Identity roles
             IsActive = user.IsActive,
             CreatedAt = user.CreatedAt,
             FullName = user.FullName

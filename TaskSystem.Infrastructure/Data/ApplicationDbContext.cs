@@ -53,9 +53,9 @@ public class ApplicationDbContext : IdentityDbContext<User, ApplicationRole, int
         // Seed roles
         var roles = new[]
         {
-            new ApplicationRole { Id = 1, Name = UserRoles.Admin, NormalizedName = UserRoles.Admin.ToUpper() },
-            new ApplicationRole { Id = 2, Name = UserRoles.Manager, NormalizedName = UserRoles.Manager.ToUpper() },
-            new ApplicationRole { Id = 3, Name = UserRoles.User, NormalizedName = UserRoles.User.ToUpper() }
+            new ApplicationRole { Id = 1, Name = "Admin", NormalizedName = "ADMIN" },
+            new ApplicationRole { Id = 2, Name = "Manager", NormalizedName = "MANAGER" },
+            new ApplicationRole { Id = 3, Name = "User", NormalizedName = "USER" }
         };
 
         modelBuilder.Entity<ApplicationRole>().HasData(roles);

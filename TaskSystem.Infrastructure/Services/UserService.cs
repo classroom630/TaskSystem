@@ -48,15 +48,16 @@ public class UserService : IUserService
             FirstName = request.FirstName,
             LastName = request.LastName,
             Email = request.Email.ToLower(),
+            UserName = request.Email.ToLower(),
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
-            Role = request.Role,
+            // Role = request.Role, // TODO: Use Identity roles
             IsActive = true
         };
 
         await _userRepository.AddAsync(user);
         await _userRepository.SaveChangesAsync();
 
-        _logger.LogInformation("User created: {Email} with role {Role}", user.Email, user.Role);
+        _logger.LogInformation("User created: {Email} with role {Role}", user.Email, request.Role);
 
         return MapToUserDto(user);
     }
@@ -82,6 +83,7 @@ public class UserService : IUserService
         user.FirstName = request.FirstName;
         user.LastName = request.LastName;
         user.Email = request.Email.ToLower();
+        user.UserName = request.Email.ToLower();
 
         if (!string.IsNullOrEmpty(request.Role))
         {
@@ -89,7 +91,7 @@ public class UserService : IUserService
             {
                 throw new InvalidOperationException("Invalid role specified");
             }
-            user.Role = request.Role;
+            // user.Role = request.Role; // TODO: Use Identity roles
         }
 
         if (request.IsActive.HasValue)
@@ -143,7 +145,7 @@ public class UserService : IUserService
             return false;
         }
 
-        user.Role = role;
+        // user.Role = role; // TODO: Use Identity roles
         await _userRepository.UpdateAsync(user);
         await _userRepository.SaveChangesAsync();
 
@@ -159,8 +161,8 @@ public class UserService : IUserService
             Id = user.Id,
             FirstName = user.FirstName,
             LastName = user.LastName,
-            Email = user.Email,
-            Role = user.Role,
+            Email = user.Email ?? string.Empty,
+            Role = "User", // TODO: Get from Identity roles
             IsActive = user.IsActive,
             CreatedAt = user.CreatedAt,
             FullName = user.FullName

@@ -85,11 +85,10 @@ public class UserRepository : IUserRepository
         return await _dbSet.FirstOrDefaultAsync(u => u.RefreshToken == refreshToken);
     }
 
-    public async Task<IEnumerable<User>> GetByRoleAsync(string role)
+    public Task<IEnumerable<User>> GetByRoleAsync(string role)
     {
-        // This will need to be updated to work with Identity roles
-        return await _context.Users
-            .Where(u => u.UserRoles.Any(ur => ur.Role.Name == role))
-            .ToListAsync();
+        // TODO: Implement with Identity roles
+        // For now, return empty list
+        return Task.FromResult<IEnumerable<User>>(new List<User>());
     }
 }

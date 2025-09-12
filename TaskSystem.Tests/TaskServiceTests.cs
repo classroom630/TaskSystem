@@ -35,8 +35,9 @@ public class TaskServiceTests
             FirstName = "Test",
             LastName = "User",
             Email = "test@example.com",
+            UserName = "test@example.com",
             PasswordHash = "hash",
-            Role = UserRoles.User,
+            // Role = UserRoles.User,
             IsActive = true
         };
         
@@ -75,9 +76,9 @@ public class TaskServiceTests
         var mockLogger = new Mock<ILogger<TaskService>>();
 
         // Add test users
-        var admin = new User { FirstName = "Admin", LastName = "User", Email = "admin@example.com", PasswordHash = "hash", Role = UserRoles.Admin, IsActive = true };
-        var user1 = new User { FirstName = "User", LastName = "One", Email = "user1@example.com", PasswordHash = "hash", Role = UserRoles.User, IsActive = true };
-        var user2 = new User { FirstName = "User", LastName = "Two", Email = "user2@example.com", PasswordHash = "hash", Role = UserRoles.User, IsActive = true };
+        var admin = new User { FirstName = "Admin", LastName = "User", Email = "admin@example.com", PasswordHash = "hash", // Role = UserRoles.Admin, IsActive = true };
+        var user1 = new User { FirstName = "User", LastName = "One", Email = "user1@example.com", PasswordHash = "hash", // Role = UserRoles.User, IsActive = true };
+        var user2 = new User { FirstName = "User", LastName = "Two", Email = "user2@example.com", PasswordHash = "hash", // Role = UserRoles.User, IsActive = true };
 
         await userRepository.AddAsync(admin);
         await userRepository.AddAsync(user1);
@@ -117,8 +118,8 @@ public class TaskServiceTests
         var mockLogger = new Mock<ILogger<TaskService>>();
 
         // Add test users
-        var user1 = new User { FirstName = "User", LastName = "One", Email = "user1@example.com", PasswordHash = "hash", Role = UserRoles.User, IsActive = true };
-        var user2 = new User { FirstName = "User", LastName = "Two", Email = "user2@example.com", PasswordHash = "hash", Role = UserRoles.User, IsActive = true };
+        var user1 = new User { FirstName = "User", LastName = "One", Email = "user1@example.com", PasswordHash = "hash", // Role = UserRoles.User, IsActive = true };
+        var user2 = new User { FirstName = "User", LastName = "Two", Email = "user2@example.com", PasswordHash = "hash", // Role = UserRoles.User, IsActive = true };
 
         await userRepository.AddAsync(user1);
         await userRepository.AddAsync(user2);
@@ -162,8 +163,9 @@ public class TaskServiceTests
             FirstName = "Test",
             LastName = "User",
             Email = "test@example.com",
+            UserName = "test@example.com",
             PasswordHash = "hash",
-            Role = UserRoles.User,
+            // Role = UserRoles.User,
             IsActive = true
         };
         
@@ -211,8 +213,8 @@ public class TaskServiceTests
         var taskRepository = new TaskRepository(context);
         var mockLogger = new Mock<ILogger<TaskService>>();
 
-        var user1 = new User { FirstName = "User", LastName = "One", Email = "user1@example.com", PasswordHash = "hash", Role = UserRoles.User, IsActive = true };
-        var user2 = new User { FirstName = "User", LastName = "Two", Email = "user2@example.com", PasswordHash = "hash", Role = UserRoles.User, IsActive = true };
+        var user1 = new User { FirstName = "User", LastName = "One", Email = "user1@example.com", PasswordHash = "hash", // Role = UserRoles.User, IsActive = true };
+        var user2 = new User { FirstName = "User", LastName = "Two", Email = "user2@example.com", PasswordHash = "hash", // Role = UserRoles.User, IsActive = true };
 
         await userRepository.AddAsync(user1);
         await userRepository.AddAsync(user2);
