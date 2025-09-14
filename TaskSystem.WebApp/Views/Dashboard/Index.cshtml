@@ -94,69 +94,259 @@
             <div class="card-body">
                 @if (ViewBag.RecentTasks != null && ((IEnumerable<object>)ViewBag.RecentTasks).Any())
                 {
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Title</th>
-                                    <th>Status</th>
-                                    <th>Priority</th>
-                                    <th>Due Date</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var task in (IEnumerable<dynamic>)ViewBag.RecentTasks)
-                                {
-                                    <tr>
-                                        <td>@task.Title</td>
-                                        <td>
-                                            @switch (task.Status)
-                                            {
-                                                case TaskSystem.Core.Entities.TaskItemStatus.Pending:
-                                                    <span class="badge bg-warning">Pending</span>
-                                                    break;
-                                                case TaskSystem.Core.Entities.TaskItemStatus.InProgress:
-                                                    <span class="badge bg-info">In Progress</span>
-                                                    break;
-                                                case TaskSystem.Core.Entities.TaskItemStatus.Completed:
-                                                    <span class="badge bg-success">Completed</span>
-                                                    break;
-                                                case TaskSystem.Core.Entities.TaskItemStatus.Cancelled:
-                                                    <span class="badge bg-danger">Cancelled</span>
-                                                    break;
-                                            }
-                                        </td>
-                                        <td>
-                                            @switch (task.Priority)
-                                            {
-                                                case TaskSystem.Core.Entities.TaskPriority.Low:
-                                                    <span class="badge bg-light text-dark">Low</span>
-                                                    break;
-                                                case TaskSystem.Core.Entities.TaskPriority.Medium:
-                                                    <span class="badge bg-secondary">Medium</span>
-                                                    break;
-                                                case TaskSystem.Core.Entities.TaskPriority.High:
-                                                    <span class="badge bg-warning">High</span>
-                                                    break;
-                                                case TaskSystem.Core.Entities.TaskPriority.Critical:
-                                                    <span class="badge bg-danger">Critical</span>
-                                                    break;
-                                            }
-                                        </td>
-                                        <td>
-                                            @if (task.DueDate != null)
-                                            {
-                                                @(((DateTime?)task.DueDate)?.ToString("MMM dd, yyyy"))
-                                            }
-                                            else
-                                            {
-                                                <span class="text-muted">No due date</span>
-                                            }
-                                        </td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
+                    <ul class="nav nav-tabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="recent-table-tab" data-bs-toggle="tab" data-bs-target="#recent-table" type="button" role="tab" aria-controls="recent-table" aria-selected="true">
+                                <i class="bi bi-table"></i> Table
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="recent-board-tab" data-bs-toggle="tab" data-bs-target="#recent-board" type="button" role="tab" aria-controls="recent-board" aria-selected="false">
+                                <i class="bi bi-kanban"></i> Board
+                            </button>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content pt-3">
+                        <!-- Table view -->
+                        <div class="tab-pane fade show active" id="recent-table" role="tabpanel" aria-labelledby="recent-table-tab">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Title</th>
+                                            <th>Status</th>
+                                            <th>Priority</th>
+                                            <th>Due Date</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var task in (IEnumerable<dynamic>)ViewBag.RecentTasks)
+                                        {
+                                            <tr>
+                                                <td>@task.Title</td>
+                                                <td>
+                                                    @switch (task.Status)
+                                                    {
+                                                        case TaskSystem.Core.Entities.TaskItemStatus.Pending:
+                                                            <span class="badge bg-warning">Pending</span>
+                                                            break;
+                                                        case TaskSystem.Core.Entities.TaskItemStatus.InProgress:
+                                                            <span class="badge bg-info">In Progress</span>
+                                                            break;
+                                                        case TaskSystem.Core.Entities.TaskItemStatus.Completed:
+                                                            <span class="badge bg-success">Completed</span>
+                                                            break;
+                                                        case TaskSystem.Core.Entities.TaskItemStatus.Cancelled:
+                                                            <span class="badge bg-danger">Cancelled</span>
+                                                            break;
+                                                    }
+                                                </td>
+                                                <td>
+                                                    @switch (task.Priority)
+                                                    {
+                                                        case TaskSystem.Core.Entities.TaskPriority.Low:
+                                                            <span class="badge bg-light text-dark">Low</span>
+                                                            break;
+                                                        case TaskSystem.Core.Entities.TaskPriority.Medium:
+                                                            <span class="badge bg-secondary">Medium</span>
+                                                            break;
+                                                        case TaskSystem.Core.Entities.TaskPriority.High:
+                                                            <span class="badge bg-warning">High</span>
+                                                            break;
+                                                        case TaskSystem.Core.Entities.TaskPriority.Critical:
+                                                            <span class="badge bg-danger">Critical</span>
+                                                            break;
+                                                    }
+                                                </td>
+                                                <td>
+                                                    @if (task.DueDate != null)
+                                                    {
+                                                        @(((DateTime?)task.DueDate)?.ToString("MMM dd, yyyy"))
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="text-muted">No due date</span>
+                                                    }
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Board view -->
+                        <div class="tab-pane fade" id="recent-board" role="tabpanel" aria-labelledby="recent-board-tab">
+                            @{ 
+                                var recent = ((IEnumerable<dynamic>)ViewBag.RecentTasks).ToList();
+                                var pending = recent.Where(t => t.Status == TaskSystem.Core.Entities.TaskItemStatus.Pending).ToList();
+                                var inProgress = recent.Where(t => t.Status == TaskSystem.Core.Entities.TaskItemStatus.InProgress).ToList();
+                                var completed = recent.Where(t => t.Status == TaskSystem.Core.Entities.TaskItemStatus.Completed).ToList();
+                                var cancelled = recent.Where(t => t.Status == TaskSystem.Core.Entities.TaskItemStatus.Cancelled).ToList();
+                            }
+                            <div class="row g-3">
+                                <div class="col-12 col-md-6 col-lg-3">
+                                    <div class="card h-100">
+                                        <div class="card-header d-flex justify-content-between align-items-center">
+                                            <strong>Pending</strong>
+                                            <span class="badge bg-secondary">@pending.Count</span>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="kanban-column" data-status="@((int)TaskSystem.Core.Entities.TaskItemStatus.Pending)">
+                                                @foreach (var t in pending)
+                                                {
+                                                    <div class="kanban-item" draggable="true" data-id="@t.Id">
+                                                        <div class="d-flex justify-content-between">
+                                                            <span class="fw-semibold">@t.Title</span>
+                                                            @switch (t.Priority)
+                                                            {
+                                                                case TaskSystem.Core.Entities.TaskPriority.Low:
+                                                                    <span class="badge bg-light text-dark">Low</span>
+                                                                    break;
+                                                                case TaskSystem.Core.Entities.TaskPriority.Medium:
+                                                                    <span class="badge bg-secondary">Medium</span>
+                                                                    break;
+                                                                case TaskSystem.Core.Entities.TaskPriority.High:
+                                                                    <span class="badge bg-warning">High</span>
+                                                                    break;
+                                                                case TaskSystem.Core.Entities.TaskPriority.Critical:
+                                                                    <span class="badge bg-danger">Critical</span>
+                                                                    break;
+                                                            }
+                                                        </div>
+                                                        @if (t.DueDate != null)
+                                                        {
+                                                            <small class="text-muted">Due @(((DateTime?)t.DueDate)?.ToString("MMM dd"))</small>
+                                                        }
+                                                    </div>
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-12 col-md-6 col-lg-3">
+                                    <div class="card h-100">
+                                        <div class="card-header d-flex justify-content-between align-items-center">
+                                            <strong>In Progress</strong>
+                                            <span class="badge bg-secondary">@inProgress.Count</span>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="kanban-column" data-status="@((int)TaskSystem.Core.Entities.TaskItemStatus.InProgress)">
+                                                @foreach (var t in inProgress)
+                                                {
+                                                    <div class="kanban-item" draggable="true" data-id="@t.Id">
+                                                        <div class="d-flex justify-content-between">
+                                                            <span class="fw-semibold">@t.Title</span>
+                                                            @switch (t.Priority)
+                                                            {
+                                                                case TaskSystem.Core.Entities.TaskPriority.Low:
+                                                                    <span class="badge bg-light text-dark">Low</span>
+                                                                    break;
+                                                                case TaskSystem.Core.Entities.TaskPriority.Medium:
+                                                                    <span class="badge bg-secondary">Medium</span>
+                                                                    break;
+                                                                case TaskSystem.Core.Entities.TaskPriority.High:
+                                                                    <span class="badge bg-warning">High</span>
+                                                                    break;
+                                                                case TaskSystem.Core.Entities.TaskPriority.Critical:
+                                                                    <span class="badge bg-danger">Critical</span>
+                                                                    break;
+                                                            }
+                                                        </div>
+                                                        @if (t.DueDate != null)
+                                                        {
+                                                            <small class="text-muted">Due @(((DateTime?)t.DueDate)?.ToString("MMM dd"))</small>
+                                                        }
+                                                    </div>
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-12 col-md-6 col-lg-3">
+                                    <div class="card h-100">
+                                        <div class="card-header d-flex justify-content-between align-items-center">
+                                            <strong>Completed</strong>
+                                            <span class="badge bg-secondary">@completed.Count</span>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="kanban-column" data-status="@((int)TaskSystem.Core.Entities.TaskItemStatus.Completed)">
+                                                @foreach (var t in completed)
+                                                {
+                                                    <div class="kanban-item" draggable="true" data-id="@t.Id">
+                                                        <div class="d-flex justify-content-between">
+                                                            <span class="fw-semibold">@t.Title</span>
+                                                            @switch (t.Priority)
+                                                            {
+                                                                case TaskSystem.Core.Entities.TaskPriority.Low:
+                                                                    <span class="badge bg-light text-dark">Low</span>
+                                                                    break;
+                                                                case TaskSystem.Core.Entities.TaskPriority.Medium:
+                                                                    <span class="badge bg-secondary">Medium</span>
+                                                                    break;
+                                                                case TaskSystem.Core.Entities.TaskPriority.High:
+                                                                    <span class="badge bg-warning">High</span>
+                                                                    break;
+                                                                case TaskSystem.Core.Entities.TaskPriority.Critical:
+                                                                    <span class="badge bg-danger">Critical</span>
+                                                                    break;
+                                                            }
+                                                        </div>
+                                                        @if (t.DueDate != null)
+                                                        {
+                                                            <small class="text-muted">Due @(((DateTime?)t.DueDate)?.ToString("MMM dd"))</small>
+                                                        }
+                                                    </div>
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-12 col-md-6 col-lg-3">
+                                    <div class="card h-100">
+                                        <div class="card-header d-flex justify-content-between align-items-center">
+                                            <strong>Cancelled</strong>
+                                            <span class="badge bg-secondary">@cancelled.Count</span>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="kanban-column" data-status="@((int)TaskSystem.Core.Entities.TaskItemStatus.Cancelled)">
+                                                @foreach (var t in cancelled)
+                                                {
+                                                    <div class="kanban-item" draggable="true" data-id="@t.Id">
+                                                        <div class="d-flex justify-content-between">
+                                                            <span class="fw-semibold">@t.Title</span>
+                                                            @switch (t.Priority)
+                                                            {
+                                                                case TaskSystem.Core.Entities.TaskPriority.Low:
+                                                                    <span class="badge bg-light text-dark">Low</span>
+                                                                    break;
+                                                                case TaskSystem.Core.Entities.TaskPriority.Medium:
+                                                                    <span class="badge bg-secondary">Medium</span>
+                                                                    break;
+                                                                case TaskSystem.Core.Entities.TaskPriority.High:
+                                                                    <span class="badge bg-warning">High</span>
+                                                                    break;
+                                                                case TaskSystem.Core.Entities.TaskPriority.Critical:
+                                                                    <span class="badge bg-danger">Critical</span>
+                                                                    break;
+                                                            }
+                                                        </div>
+                                                        @if (t.DueDate != null)
+                                                        {
+                                                            <small class="text-muted">Due @(((DateTime?)t.DueDate)?.ToString("MMM dd"))</small>
+                                                        }
+                                                    </div>
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 }
                 else
@@ -229,3 +419,75 @@
         </div>
     }
 </div>
+
+@section Scripts {
+    <style>
+        .kanban-column { min-height: 200px; padding: .5rem; background-color: #f8f9fa; border-radius: .25rem; }
+        .kanban-item { background: #fff; border: 1px solid #e9ecef; border-radius: .25rem; padding: .5rem .75rem; margin-bottom: .5rem; cursor: grab; }
+        .kanban-column.drag-over { outline: 2px dashed #0d6efd; background-color: #eef5ff; }
+    </style>
+    <script>
+        (function () {
+            const board = document.getElementById('recent-board');
+            if (!board) return;
+
+            const columns = board.querySelectorAll('.kanban-column');
+            let dragged = null;
+
+            function updateCounts() {
+                board.querySelectorAll('.kanban-column').forEach(kc => {
+                    const count = kc.querySelectorAll('.kanban-item').length;
+                    const badge = kc.closest('.card').querySelector('.badge.bg-secondary');
+                    if (badge) badge.textContent = count;
+                });
+            }
+
+            board.querySelectorAll('.kanban-item').forEach(item => {
+                item.addEventListener('dragstart', e => {
+                    dragged = item;
+                    e.dataTransfer.setData('text/plain', item.getAttribute('data-id'));
+                    e.dataTransfer.effectAllowed = 'move';
+                });
+                item.addEventListener('dragend', () => {
+                    dragged = null;
+                    columns.forEach(c => c.classList.remove('drag-over'));
+                });
+            });
+
+            columns.forEach(col => {
+                col.addEventListener('dragover', e => {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = 'move';
+                    col.classList.add('drag-over');
+                });
+                col.addEventListener('dragleave', () => col.classList.remove('drag-over'));
+                col.addEventListener('drop', async e => {
+                    e.preventDefault();
+                    col.classList.remove('drag-over');
+                    const id = e.dataTransfer.getData('text/plain');
+                    if (!id) return;
+                    const targetStatus = parseInt(col.getAttribute('data-status'));
+
+                    if (dragged && dragged.parentElement !== col) {
+                        col.prepend(dragged);
+                        updateCounts();
+                    }
+
+                    try {
+                        const resp = await fetch('@Url.Action("UpdateStatus", "Tasks")', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ id: parseInt(id), status: targetStatus })
+                        });
+                        if (!resp.ok) {
+                            window.location.reload();
+                        }
+                    } catch (err) {
+                        console.error(err);
+                        window.location.reload();
+                    }
+                });
+            });
+        })();
+    </script>
+}
