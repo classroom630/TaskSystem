@@ -1,3 +1,5 @@
+using AutoMapper;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using TaskSystem.Core.DTOs;
@@ -8,40 +10,55 @@ namespace TaskSystem.Infrastructure.Services;
 
 public class AuthService : IAuthService
 {
-    private readonly IUserRepository _userRepository;
+    private readonly UserManager<User> _userManager;
+    private readonly SignInManager<User> _signInManager;
+    private readonly RoleManager<ApplicationRole> _roleManager;
     private readonly IJwtTokenService _jwtTokenService;
     private readonly IEmailService _emailService;
+    private readonly IMapper _mapper;
     private readonly ILogger<AuthService> _logger;
 
     public AuthService(
-        IUserRepository userRepository,
+        UserManager<User> userManager,
+        SignInManager<User> signInManager,
+        RoleManager<ApplicationRole> roleManager,
         IJwtTokenService jwtTokenService,
         IEmailService emailService,
+        IMapper mapper,
         ILogger<AuthService> logger)
     {
-        _userRepository = userRepository;
+        _userManager = userManager;
+        _signInManager = signInManager;
+        _roleManager = roleManager;
         _jwtTokenService = jwtTokenService;
         _emailService = emailService;
+        _mapper = mapper;
         _logger = logger;
     }
 
     public async Task<AuthResponse> LoginAsync(LoginRequest request)
     {
-        var user = await _userRepository.GetByEmailAsync(request.Email);
+        var user = await _userManager.FindByEmailAsync(request.Email);
         
-        if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash) || !user.IsActive)
+        if (user == null || !user.IsActive)
         {
             throw new UnauthorizedAccessException("Invalid email or password");
         }
 
-        var accessToken = _jwtTokenService.GenerateAccessToken(user);
+        var result = await _signInManager.CheckPasswordSignInAsync(user, request.Password, false);
+        
+        if (!result.Succeeded)
+        {
+            throw new UnauthorizedAccessException("Invalid email or password");
+        }
+
+        var accessToken = await _jwtTokenService.GenerateAccessTokenAsync(user);
         var refreshToken = _jwtTokenService.GenerateRefreshToken();
 
         user.RefreshToken = refreshToken;
         user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
 
-        await _userRepository.UpdateAsync(user);
-        await _userRepository.SaveChangesAsync();
+        await _userManager.UpdateAsync(user);
 
         _logger.LogInformation("User {Email} logged in successfully", user.Email);
 
@@ -50,38 +67,45 @@ public class AuthService : IAuthService
             Token = accessToken,
             RefreshToken = refreshToken,
             Expires = _jwtTokenService.GetTokenExpiration(accessToken),
-            User = MapToUserDto(user)
+            User = await MapToUserDtoAsync(user)
         };
     }
 
     public async Task<AuthResponse> RegisterAsync(RegisterRequest request)
     {
-        var existingUser = await _userRepository.GetByEmailAsync(request.Email);
+        var existingUser = await _userManager.FindByEmailAsync(request.Email);
         if (existingUser != null)
         {
             throw new InvalidOperationException("User with this email already exists");
         }
 
-        var user = new User
+        // Validate role
+        if (!UserRoles.AllRoles.Contains(request.Role))
         {
-            FirstName = request.FirstName,
-            LastName = request.LastName,
-            Email = request.Email.ToLower(),
-            UserName = request.Email.ToLower(),
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
-            // Role = UserRoles.User, // TODO: Use Identity roles
-            IsActive = true
-        };
+            throw new InvalidOperationException("Invalid role specified");
+        }
 
-        await _userRepository.AddAsync(user);
-        await _userRepository.SaveChangesAsync();
+        var user = _mapper.Map<User>(request);
+        user.UserName = request.Email.ToLower();
+        user.Email = request.Email.ToLower();
+        user.IsActive = true;
 
-        _logger.LogInformation("New user registered: {Email}", user.Email);
+        var result = await _userManager.CreateAsync(user, request.Password);
+        
+        if (!result.Succeeded)
+        {
+            throw new InvalidOperationException($"Failed to create user: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+        }
+
+        // Assign role
+        await _userManager.AddToRoleAsync(user, request.Role);
+
+        _logger.LogInformation("New user registered: {Email} with role {Role}", user.Email, request.Role);
 
         // Send welcome email
         try
         {
-            await _emailService.SendWelcomeEmailAsync(user.Email, user.FirstName);
+            await _emailService.SendWelcomeEmailAsync(user.Email!, user.FirstName);
         }
         catch (Exception ex)
         {
@@ -89,21 +113,20 @@ public class AuthService : IAuthService
             // Don't fail registration if email fails
         }
 
-        var accessToken = _jwtTokenService.GenerateAccessToken(user);
+        var accessToken = await _jwtTokenService.GenerateAccessTokenAsync(user);
         var refreshToken = _jwtTokenService.GenerateRefreshToken();
 
         user.RefreshToken = refreshToken;
         user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
 
-        await _userRepository.UpdateAsync(user);
-        await _userRepository.SaveChangesAsync();
+        await _userManager.UpdateAsync(user);
 
         return new AuthResponse
         {
             Token = accessToken,
             RefreshToken = refreshToken,
             Expires = _jwtTokenService.GetTokenExpiration(accessToken),
-            User = MapToUserDto(user)
+            User = await MapToUserDtoAsync(user)
         };
     }
 
@@ -117,7 +140,7 @@ public class AuthService : IAuthService
             throw new SecurityTokenException("Invalid token");
         }
 
-        var user = await _userRepository.GetByIdAsync(userId);
+        var user = await _userManager.FindByIdAsync(userId.ToString());
         
         if (user == null || user.RefreshToken != request.RefreshToken || 
             user.RefreshTokenExpiryTime <= DateTime.UtcNow || !user.IsActive)
@@ -125,27 +148,27 @@ public class AuthService : IAuthService
             throw new SecurityTokenException("Invalid refresh token");
         }
 
-        var newAccessToken = _jwtTokenService.GenerateAccessToken(user);
+        var newAccessToken = await _jwtTokenService.GenerateAccessTokenAsync(user);
         var newRefreshToken = _jwtTokenService.GenerateRefreshToken();
 
         user.RefreshToken = newRefreshToken;
         user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
 
-        await _userRepository.UpdateAsync(user);
-        await _userRepository.SaveChangesAsync();
+        await _userManager.UpdateAsync(user);
 
         return new AuthResponse
         {
             Token = newAccessToken,
             RefreshToken = newRefreshToken,
             Expires = _jwtTokenService.GetTokenExpiration(newAccessToken),
-            User = MapToUserDto(user)
+            User = await MapToUserDtoAsync(user)
         };
     }
 
     public async Task<bool> RevokeTokenAsync(string refreshToken)
     {
-        var user = await _userRepository.GetByRefreshTokenAsync(refreshToken);
+        var users = _userManager.Users.Where(u => u.RefreshToken == refreshToken);
+        var user = users.FirstOrDefault();
         
         if (user == null)
         {
@@ -155,24 +178,16 @@ public class AuthService : IAuthService
         user.RefreshToken = null;
         user.RefreshTokenExpiryTime = null;
 
-        await _userRepository.UpdateAsync(user);
-        await _userRepository.SaveChangesAsync();
+        await _userManager.UpdateAsync(user);
 
         return true;
     }
 
-    private static UserDto MapToUserDto(User user)
+    private async Task<UserDto> MapToUserDtoAsync(User user)
     {
-        return new UserDto
-        {
-            Id = user.Id,
-            FirstName = user.FirstName,
-            LastName = user.LastName,
-            Email = user.Email ?? string.Empty,
-            Role = "User", // TODO: Get from Identity roles
-            IsActive = user.IsActive,
-            CreatedAt = user.CreatedAt,
-            FullName = user.FullName
-        };
+        var userDto = _mapper.Map<UserDto>(user);
+        var roles = await _userManager.GetRolesAsync(user);
+        userDto.Role = roles.FirstOrDefault() ?? string.Empty;
+        return userDto;
     }
 }

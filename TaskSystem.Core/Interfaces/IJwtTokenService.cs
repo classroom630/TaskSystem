@@ -5,7 +5,7 @@ namespace TaskSystem.Core.Interfaces;
 
 public interface IJwtTokenService
 {
-    string GenerateAccessToken(User user);
+    Task<string> GenerateAccessTokenAsync(User user);
     string GenerateRefreshToken();
     ClaimsPrincipal GetPrincipalFromExpiredToken(string token);
     DateTime GetTokenExpiration(string token);

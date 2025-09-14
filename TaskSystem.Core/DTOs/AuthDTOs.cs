@@ -34,6 +34,9 @@ public class RegisterRequest
     [Required]
     [Compare("Password")]
     public string ConfirmPassword { get; set; } = string.Empty;
+
+    [Required]
+    public string Role { get; set; } = string.Empty;
 }
 
 public class AuthResponse

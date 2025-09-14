@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -12,31 +13,36 @@ namespace TaskSystem.Infrastructure.Services;
 public class JwtTokenService : IJwtTokenService
 {
     private readonly IConfiguration _configuration;
+    private readonly UserManager<User> _userManager;
     private readonly string _secretKey;
     private readonly string _issuer;
     private readonly string _audience;
     private readonly int _expireMinutes;
 
-    public JwtTokenService(IConfiguration configuration)
+    public JwtTokenService(IConfiguration configuration, UserManager<User> userManager)
     {
         _configuration = configuration;
+        _userManager = userManager;
         _secretKey = _configuration["JwtSettings:SecretKey"] ?? throw new InvalidOperationException("JWT SecretKey is not configured");
         _issuer = _configuration["JwtSettings:Issuer"] ?? "TaskSystem";
         _audience = _configuration["JwtSettings:Audience"] ?? "TaskSystemUsers";
         _expireMinutes = int.Parse(_configuration["JwtSettings:ExpireMinutes"] ?? "60");
     }
 
-    public string GenerateAccessToken(User user)
+    public async Task<string> GenerateAccessTokenAsync(User user)
     {
         var tokenHandler = new JwtSecurityTokenHandler();
         var key = Encoding.ASCII.GetBytes(_secretKey);
+
+        var roles = await _userManager.GetRolesAsync(user);
+        var userRole = roles.FirstOrDefault() ?? UserRoles.User;
 
         var claims = new List<Claim>
         {
             new(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new(ClaimTypes.Name, user.FullName),
             new(ClaimTypes.Email, user.Email ?? string.Empty),
-            new(ClaimTypes.Role, "User"), // TODO: Get from Identity roles
+            new(ClaimTypes.Role, userRole),
             new("userId", user.Id.ToString()),
             new("firstName", user.FirstName),
             new("lastName", user.LastName)
