@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TaskSystem.Core.DTOs;
+using TaskSystem.Core.Entities;
 using TaskSystem.Core.Interfaces;
 
 namespace TaskSystem.API.Controllers;
@@ -19,9 +20,10 @@ public class AuthController : ControllerBase
     }
 
     /// <summary>
-    /// Register a new user
+    /// Register a new user (Admin only)
     /// </summary>
     [HttpPost("register")]
+    [Authorize(Roles = UserRoles.Admin)]
     public async Task<ActionResult<AuthResponse>> Register([FromBody] RegisterRequest request)
     {
         if (!ModelState.IsValid)

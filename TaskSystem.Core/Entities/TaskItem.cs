@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TaskSystem.Core.Entities;
 
@@ -21,8 +22,10 @@ public class TaskItem : BaseEntity
 
     // Foreign Keys
     [Required]
+    [ForeignKey(nameof(CreatedBy))]
     public int CreatedById { get; set; }
     
+    [ForeignKey(nameof(AssignedTo))]
     public int? AssignedToId { get; set; }
 
     // Navigation Properties
