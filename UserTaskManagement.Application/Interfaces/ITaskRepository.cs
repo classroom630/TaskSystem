@@ -1,6 +1,6 @@
 using TaskEntity = UserTaskManagement.Domain.Entities.Task;
 
-namespace UserTaskManagement.Infrastructure.Repositories
+namespace UserTaskManagement.Application.Interfaces
 {
     public interface ITaskRepository : IBaseRepository<TaskEntity>
     {

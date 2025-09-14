@@ -1,4 +1,5 @@
 using AutoMapper;
+using UserTaskManagement.Application.DTOs.Auth;
 using UserTaskManagement.Application.DTOs.Task;
 using UserTaskManagement.Application.DTOs.User;
 using UserTaskManagement.Domain.Entities;
@@ -20,10 +21,16 @@ namespace UserTaskManagement.Infrastructure.Mappings
                 .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.Email))
                 .ForMember(dest => dest.NormalizedUserName, opt => opt.MapFrom(src => src.Email.ToUpper()))
                 .ForMember(dest => dest.NormalizedEmail, opt => opt.MapFrom(src => src.Email.ToUpper()));
+            
+            // Registration mapping
+            CreateMap<RegisterRequest, User>()
+                .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.Email))
+                .ForMember(dest => dest.NormalizedUserName, opt => opt.MapFrom(src => src.Email.ToUpper()))
+                .ForMember(dest => dest.NormalizedEmail, opt => opt.MapFrom(src => src.Email.ToUpper()));
 
             // Task mappings
             CreateMap<TaskEntity, TaskDto>()
-                .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => $"{src.User.FirstName} {src.User.LastName}"));
+                .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.User != null ? $"{src.User.FirstName} {src.User.LastName}" : ""));
             CreateMap<CreateTaskDto, TaskEntity>();
             CreateMap<UpdateTaskDto, TaskEntity>();
         }

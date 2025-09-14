@@ -1,7 +1,7 @@
 using UserTaskManagement.Domain.Entities;
 using UserTaskManagement.Domain.Enums;
 
-namespace UserTaskManagement.Infrastructure.Repositories
+namespace UserTaskManagement.Application.Interfaces
 {
     public interface IUserRepository : IBaseRepository<User>
     {

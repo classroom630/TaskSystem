@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using UserTaskManagement.Application.Interfaces;
 using UserTaskManagement.Infrastructure.Data;
 
 namespace UserTaskManagement.Infrastructure.Repositories
@@ -52,15 +53,5 @@ namespace UserTaskManagement.Infrastructure.Repositories
         {
             return await _dbSet.CountAsync();
         }
-    }
-
-    public interface IBaseRepository<T> where T : class
-    {
-        Task<IEnumerable<T>> GetAllAsync();
-        Task<T?> GetByIdAsync(int id);
-        Task<T> AddAsync(T entity);
-        Task<T> UpdateAsync(T entity);
-        Task<bool> DeleteAsync(int id);
-        Task<int> CountAsync();
     }
 }

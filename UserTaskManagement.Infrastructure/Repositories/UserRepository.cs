@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using UserTaskManagement.Application.Interfaces;
 using UserTaskManagement.Domain.Entities;
 using UserTaskManagement.Domain.Enums;
 using UserTaskManagement.Infrastructure.Data;

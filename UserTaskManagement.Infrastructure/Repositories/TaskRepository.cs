@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using UserTaskManagement.Application.Interfaces;
 using UserTaskManagement.Infrastructure.Data;
 using TaskEntity = UserTaskManagement.Domain.Entities.Task;
 
