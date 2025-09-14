@@ -392,6 +392,56 @@ public class TasksController : Controller
         return RedirectToAction(nameof(Index));
     }
 
+    // POST: /Tasks/UpdateStatus
+    [HttpPost]
+    public async Task<IActionResult> UpdateStatus([FromBody] UpdateTaskStatusDto dto)
+    {
+        var token = HttpContext.Session.GetString("JwtToken");
+        if (string.IsNullOrEmpty(token))
+        {
+            return Unauthorized();
+        }
+
+        try
+        {
+            var task = await _apiService.GetTaskAsync(dto.Id, token);
+            if (task == null)
+            {
+                return NotFound();
+            }
+
+            var currentUserId = GetCurrentUserId();
+            var userRole = User.FindFirst(ClaimTypes.Role)?.Value ?? string.Empty;
+            if (!CanUserModifyTask(task, currentUserId, userRole))
+            {
+                return Forbid();
+            }
+
+            var updateRequest = new UpdateTaskRequest
+            {
+                Title = task.Title,
+                Description = task.Description,
+                Status = dto.Status,
+                Priority = task.Priority,
+                DueDate = task.DueDate,
+                AssignedToId = task.AssignedToId
+            };
+
+            var updated = await _apiService.UpdateTaskAsync(dto.Id, updateRequest, token);
+            if (updated == null)
+            {
+                return BadRequest(new { message = "Failed to update task status" });
+            }
+
+            return Ok(new { id = updated.Id, status = updated.Status.ToString() });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating task {TaskId} status to {Status}", dto.Id, dto.Status);
+            return StatusCode(500, new { message = "An error occurred while updating status" });
+        }
+    }
+
     private int GetCurrentUserId()
     {
         var userIdClaim = User.FindFirst("userId") ?? User.FindFirst(ClaimTypes.NameIdentifier);
@@ -408,4 +458,10 @@ public class TasksController : Controller
             _ => false
         };
     }
+}
+
+public class UpdateTaskStatusDto
+{
+    public int Id { get; set; }
+    public TaskItemStatus Status { get; set; }
 }

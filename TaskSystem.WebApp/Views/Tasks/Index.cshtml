@@ -35,126 +35,223 @@
     <div class="card-body">
         @if (Model.Tasks.Any())
         {
-            <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead>
-                        <tr>
-                            <th>Title</th>
-                            <th>Status</th>
-                            <th>Priority</th>
-                            <th>Assigned To</th>
-                            <th>Due Date</th>
-                            <th>Created</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var task in Model.Tasks)
-                        {
-                            <tr>
-                                <td>
-                                    <a asp-action="Details" asp-route-id="@task.Id" class="text-decoration-none">
-                                        @task.Title
-                                    </a>
-                                    @if (!string.IsNullOrEmpty(task.Description))
-                                    {
-                                        <br><small class="text-muted">@task.Description</small>
-                                    }
-                                </td>
-                                <td>
-                                    @switch (task.Status)
-                                    {
-                                        case TaskSystem.Core.Entities.TaskItemStatus.Pending:
-                                            <span class="badge bg-warning">Pending</span>
-                                            break;
-                                        case TaskSystem.Core.Entities.TaskItemStatus.InProgress:
-                                            <span class="badge bg-info">In Progress</span>
-                                            break;
-                                        case TaskSystem.Core.Entities.TaskItemStatus.Completed:
-                                            <span class="badge bg-success">Completed</span>
-                                            break;
-                                        case TaskSystem.Core.Entities.TaskItemStatus.Cancelled:
-                                            <span class="badge bg-danger">Cancelled</span>
-                                            break;
-                                    }
-                                </td>
-                                <td>
-                                    @switch (task.Priority)
-                                    {
-                                        case TaskSystem.Core.Entities.TaskPriority.Low:
-                                            <span class="badge bg-light text-dark">Low</span>
-                                            break;
-                                        case TaskSystem.Core.Entities.TaskPriority.Medium:
-                                            <span class="badge bg-secondary">Medium</span>
-                                            break;
-                                        case TaskSystem.Core.Entities.TaskPriority.High:
-                                            <span class="badge bg-warning">High</span>
-                                            break;
-                                        case TaskSystem.Core.Entities.TaskPriority.Critical:
-                                            <span class="badge bg-danger">Critical</span>
-                                            break;
-                                    }
-                                </td>
-                                <td>
-                                    @if (!string.IsNullOrEmpty(task.AssignedToName))
-                                    {
-                                        @task.AssignedToName
-                                    }
-                                    else
-                                    {
-                                        <span class="text-muted">Unassigned</span>
-                                    }
-                                </td>
-                                <td>
-                                    @if (task.DueDate.HasValue)
-                                    {
-                                        var daysUntilDue = (task.DueDate.Value.Date - DateTime.Now.Date).Days;
-                                        <span class="@(daysUntilDue < 0 ? "text-danger" : daysUntilDue <= 3 ? "text-warning" : "")">
-                                            @task.DueDate.Value.ToString("MMM dd, yyyy")
-                                        </span>
-                                        @if (daysUntilDue < 0)
-                                        {
-                                            <br><small class="text-danger">Overdue</small>
-                                        }
-                                        else if (daysUntilDue <= 3)
-                                        {
-                                            <br><small class="text-warning">Due soon</small>
-                                        }
-                                    }
-                                    else
-                                    {
-                                        <span class="text-muted">No due date</span>
-                                    }
-                                </td>
-                                <td>
-                                    @task.CreatedAt.ToString("MMM dd, yyyy")
-                                    <br><small class="text-muted">by @task.CreatedByName</small>
-                                </td>
-                                <td>
-                                    <div class="btn-group btn-group-sm" role="group">
-                                        <a asp-action="Details" asp-route-id="@task.Id" class="btn btn-outline-info" title="View Details">
-                                            <i class="bi bi-eye"></i>
-                                        </a>
-                                        @{
-                                            var currentUserId = User.FindFirst("userId")?.Value;
-                                            var canModify = Model.CurrentUserRole == "Admin" || Model.CurrentUserRole == "Manager" || 
-                                                           task.CreatedById.ToString() == currentUserId || task.AssignedToId?.ToString() == currentUserId;
-                                        }
-                                        @if (canModify)
-                                        {
-                                            <a asp-action="Edit" asp-route-id="@task.Id" class="btn btn-outline-primary" title="Edit Task">
-                                                <i class="bi bi-pencil"></i>
+            <ul class="nav nav-tabs" id="taskTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="table-tab" data-bs-toggle="tab" data-bs-target="#tableTab" type="button" role="tab" aria-controls="tableTab" aria-selected="true">
+                        <i class="bi bi-table"></i> Table
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="board-tab" data-bs-toggle="tab" data-bs-target="#boardTab" type="button" role="tab" aria-controls="boardTab" aria-selected="false">
+                        <i class="bi bi-kanban"></i> Board
+                    </button>
+                </li>
+            </ul>
+
+            <div class="tab-content pt-3" id="taskTabsContent">
+                <div class="tab-pane fade show active" id="tableTab" role="tabpanel" aria-labelledby="table-tab">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Title</th>
+                                    <th>Status</th>
+                                    <th>Priority</th>
+                                    <th>Assigned To</th>
+                                    <th>Due Date</th>
+                                    <th>Created</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var task in Model.Tasks)
+                                {
+                                    <tr>
+                                        <td>
+                                            <a asp-action="Details" asp-route-id="@task.Id" class="text-decoration-none">
+                                                @task.Title
                                             </a>
-                                            <a asp-action="Delete" asp-route-id="@task.Id" class="btn btn-outline-danger" title="Delete Task">
-                                                <i class="bi bi-trash"></i>
-                                            </a>
-                                        }
-                                    </div>
-                                </td>
-                            </tr>
+                                            @if (!string.IsNullOrEmpty(task.Description))
+                                            {
+                                                <br><small class="text-muted">@task.Description</small>
+                                            }
+                                        </td>
+                                        <td>
+                                            @switch (task.Status)
+                                            {
+                                                case TaskSystem.Core.Entities.TaskItemStatus.Pending:
+                                                    <span class="badge bg-warning">Pending</span>
+                                                    break;
+                                                case TaskSystem.Core.Entities.TaskItemStatus.InProgress:
+                                                    <span class="badge bg-info">In Progress</span>
+                                                    break;
+                                                case TaskSystem.Core.Entities.TaskItemStatus.Completed:
+                                                    <span class="badge bg-success">Completed</span>
+                                                    break;
+                                                case TaskSystem.Core.Entities.TaskItemStatus.Cancelled:
+                                                    <span class="badge bg-danger">Cancelled</span>
+                                                    break;
+                                            }
+                                        </td>
+                                        <td>
+                                            @switch (task.Priority)
+                                            {
+                                                case TaskSystem.Core.Entities.TaskPriority.Low:
+                                                    <span class="badge bg-light text-dark">Low</span>
+                                                    break;
+                                                case TaskSystem.Core.Entities.TaskPriority.Medium:
+                                                    <span class="badge bg-secondary">Medium</span>
+                                                    break;
+                                                case TaskSystem.Core.Entities.TaskPriority.High:
+                                                    <span class="badge bg-warning">High</span>
+                                                    break;
+                                                case TaskSystem.Core.Entities.TaskPriority.Critical:
+                                                    <span class="badge bg-danger">Critical</span>
+                                                    break;
+                                            }
+                                        </td>
+                                        <td>
+                                            @if (!string.IsNullOrEmpty(task.AssignedToName))
+                                            {
+                                                @task.AssignedToName
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">Unassigned</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            @if (task.DueDate.HasValue)
+                                            {
+                                                var daysUntilDue = (task.DueDate.Value.Date - DateTime.Now.Date).Days;
+                                                <span class="@(daysUntilDue < 0 ? "text-danger" : daysUntilDue <= 3 ? "text-warning" : "")">
+                                                    @task.DueDate.Value.ToString("MMM dd, yyyy")
+                                                </span>
+                                                @if (daysUntilDue < 0)
+                                                {
+                                                    <br><small class="text-danger">Overdue</small>
+                                                }
+                                                else if (daysUntilDue <= 3)
+                                                {
+                                                    <br><small class="text-warning">Due soon</small>
+                                                }
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">No due date</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            @task.CreatedAt.ToString("MMM dd, yyyy")
+                                            <br><small class="text-muted">by @task.CreatedByName</small>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm" role="group">
+                                                <a asp-action="Details" asp-route-id="@task.Id" class="btn btn-outline-info" title="View Details">
+                                                    <i class="bi bi-eye"></i>
+                                                </a>
+                                                @if (Model.CurrentUserRole == "Admin" || Model.CurrentUserRole == "Manager" || 
+                                                    task.CreatedById.ToString() == User.FindFirst("userId")?.Value || task.AssignedToId?.ToString() == User.FindFirst("userId")?.Value)
+                                                {
+                                                    <a asp-action="Edit" asp-route-id="@task.Id" class="btn btn-outline-primary" title="Edit Task">
+                                                        <i class="bi bi-pencil"></i>
+                                                    </a>
+                                                    <a asp-action="Delete" asp-route-id="@task.Id" class="btn btn-outline-danger" title="Delete Task">
+                                                        <i class="bi bi-trash"></i>
+                                                    </a>
+                                                }
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="boardTab" role="tabpanel" aria-labelledby="board-tab">
+                    <div class="row g-3 kanban-board">
+                        @{
+                            var grouped = Model.Tasks.GroupBy(t => t.Status).ToDictionary(g => g.Key, g => g.ToList());
+                            TaskSystem.Core.Entities.TaskItemStatus[] columns = new[] {
+                                TaskSystem.Core.Entities.TaskItemStatus.Pending,
+                                TaskSystem.Core.Entities.TaskItemStatus.InProgress,
+                                TaskSystem.Core.Entities.TaskItemStatus.Completed,
+                                TaskSystem.Core.Entities.TaskItemStatus.Cancelled
+                            };
                         }
-                    </tbody>
-                </table>
+                        @foreach (var col in columns)
+                        {
+                            var columnTasks = grouped.ContainsKey(col) ? grouped[col] : new List<TaskDto>();
+                            <div class="col-12 col-md-6 col-lg-3">
+                                <div class="card h-100">
+                                    <div class="card-header d-flex align-items-center justify-content-between">
+                                        <strong>
+                                            @switch (col)
+                                            {
+                                                case TaskSystem.Core.Entities.TaskItemStatus.Pending:
+                                                    @:Pending
+                                                    break;
+                                                case TaskSystem.Core.Entities.TaskItemStatus.InProgress:
+                                                    @:In Progress
+                                                    break;
+                                                case TaskSystem.Core.Entities.TaskItemStatus.Completed:
+                                                    @:Completed
+                                                    break;
+                                                case TaskSystem.Core.Entities.TaskItemStatus.Cancelled:
+                                                    @:Cancelled
+                                                    break;
+                                            }
+                                        </strong>
+                                        <span class="badge bg-secondary">@columnTasks.Count</span>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="kanban-column" data-status="@((int)col)">
+                                            @foreach (var task in columnTasks)
+                                            {
+                                                <div class="kanban-item" draggable="true" data-id="@task.Id">
+                                                    <div class="d-flex justify-content-between">
+                                                        <strong>@task.Title</strong>
+                                                        @switch (task.Priority)
+                                                        {
+                                                            case TaskSystem.Core.Entities.TaskPriority.Low:
+                                                                <span class="badge bg-light text-dark">Low</span>
+                                                                break;
+                                                            case TaskSystem.Core.Entities.TaskPriority.Medium:
+                                                                <span class="badge bg-secondary">Medium</span>
+                                                                break;
+                                                            case TaskSystem.Core.Entities.TaskPriority.High:
+                                                                <span class="badge bg-warning">High</span>
+                                                                break;
+                                                            case TaskSystem.Core.Entities.TaskPriority.Critical:
+                                                                <span class="badge bg-danger">Critical</span>
+                                                                break;
+                                                        }
+                                                    </div>
+                                                    @if (!string.IsNullOrEmpty(task.Description))
+                                                    {
+                                                        <div class="small text-muted mt-1">@task.Description</div>
+                                                    }
+                                                    <div class="small mt-2 d-flex justify-content-between align-items-center">
+                                                        <span>
+                                                            @if (task.DueDate.HasValue)
+                                                            {
+                                                                @task.DueDate.Value.ToString("MMM dd")
+                                                            }
+                                                        </span>
+                                                        <a asp-action="Details" asp-route-id="@task.Id" class="text-decoration-none">
+                                                            <i class="bi bi-box-arrow-up-right"></i>
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
             </div>
         }
         else
@@ -170,3 +267,73 @@
         }
     </div>
 </div>
+
+@section Scripts {
+    <style>
+        .kanban-board .kanban-column { min-height: 200px; padding: .5rem; background-color: #f8f9fa; border-radius: .25rem; }
+        .kanban-item { background: #fff; border: 1px solid #e9ecef; border-radius: .25rem; padding: .5rem .75rem; margin-bottom: .5rem; cursor: grab; }
+        .kanban-column.drag-over { outline: 2px dashed #0d6efd; background-color: #eef5ff; }
+    </style>
+    <script>
+        (function () {
+            const items = document.querySelectorAll('.kanban-item');
+            const columns = document.querySelectorAll('.kanban-column');
+            let dragged = null;
+
+            items.forEach(item => {
+                item.addEventListener('dragstart', e => {
+                    dragged = item;
+                    e.dataTransfer.setData('text/plain', item.getAttribute('data-id'));
+                    e.dataTransfer.effectAllowed = 'move';
+                });
+                item.addEventListener('dragend', () => {
+                    dragged = null;
+                    columns.forEach(c => c.classList.remove('drag-over'));
+                });
+            });
+
+            columns.forEach(col => {
+                col.addEventListener('dragover', e => {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = 'move';
+                    col.classList.add('drag-over');
+                });
+                col.addEventListener('dragleave', () => col.classList.remove('drag-over'));
+                col.addEventListener('drop', async e => {
+                    e.preventDefault();
+                    col.classList.remove('drag-over');
+                    const id = e.dataTransfer.getData('text/plain');
+                    if (!id) return;
+                    const targetStatus = parseInt(col.getAttribute('data-status'));
+
+                    // Optimistic UI: move element
+                    if (dragged && dragged.parentElement !== col) {
+                        col.prepend(dragged);
+                    }
+
+                    try {
+                        const resp = await fetch('@Url.Action("UpdateStatus", "Tasks")', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ id: parseInt(id), status: targetStatus })
+                        });
+                        if (!resp.ok) {
+                            // revert on failure
+                            window.location.reload();
+                        } else {
+                            // update counts
+                            document.querySelectorAll('.kanban-column').forEach(kc => {
+                                const count = kc.querySelectorAll('.kanban-item').length;
+                                const header = kc.closest('.card').querySelector('.badge.bg-secondary');
+                                if (header) header.textContent = count;
+                            });
+                        }
+                    } catch (err) {
+                        console.error(err);
+                        window.location.reload();
+                    }
+                });
+            });
+        })();
+    </script>
+}

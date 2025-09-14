@@ -119,6 +119,16 @@ public class ApiService : IApiService
                 var content = await response.Content.ReadAsStringAsync();
                 return JsonConvert.DeserializeObject<T>(content);
             }
+            else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            {
+                _logger.LogWarning("Unauthorized access to {Endpoint}. Status: {StatusCode}, Reason: {ReasonPhrase}", 
+                    endpoint, response.StatusCode, response.ReasonPhrase);
+            }
+            else
+            {
+                _logger.LogWarning("GET request to {Endpoint} failed. Status: {StatusCode}, Reason: {ReasonPhrase}", 
+                    endpoint, response.StatusCode, response.ReasonPhrase);
+            }
         }
         catch (Exception ex)
         {
@@ -146,6 +156,16 @@ public class ApiService : IApiService
                 var responseContent = await response.Content.ReadAsStringAsync();
                 return JsonConvert.DeserializeObject<T>(responseContent);
             }
+            else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            {
+                _logger.LogWarning("Unauthorized access to {Endpoint}. Status: {StatusCode}, Reason: {ReasonPhrase}", 
+                    endpoint, response.StatusCode, response.ReasonPhrase);
+            }
+            else
+            {
+                _logger.LogWarning("POST request to {Endpoint} failed. Status: {StatusCode}, Reason: {ReasonPhrase}", 
+                    endpoint, response.StatusCode, response.ReasonPhrase);
+            }
         }
         catch (Exception ex)
         {
@@ -170,6 +190,16 @@ public class ApiService : IApiService
                 var responseContent = await response.Content.ReadAsStringAsync();
                 return JsonConvert.DeserializeObject<T>(responseContent);
             }
+            else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            {
+                _logger.LogWarning("Unauthorized access to {Endpoint}. Status: {StatusCode}, Reason: {ReasonPhrase}", 
+                    endpoint, response.StatusCode, response.ReasonPhrase);
+            }
+            else
+            {
+                _logger.LogWarning("PUT request to {Endpoint} failed. Status: {StatusCode}, Reason: {ReasonPhrase}", 
+                    endpoint, response.StatusCode, response.ReasonPhrase);
+            }
         }
         catch (Exception ex)
         {
@@ -184,7 +214,23 @@ public class ApiService : IApiService
         {
             var request = new HttpRequestMessage(HttpMethod.Delete, endpoint);
             request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-            return await _httpClient.SendAsync(request);
+            var response = await _httpClient.SendAsync(request);
+            
+            if (!response.IsSuccessStatusCode)
+            {
+                if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                {
+                    _logger.LogWarning("Unauthorized access to {Endpoint}. Status: {StatusCode}, Reason: {ReasonPhrase}", 
+                        endpoint, response.StatusCode, response.ReasonPhrase);
+                }
+                else
+                {
+                    _logger.LogWarning("DELETE request to {Endpoint} failed. Status: {StatusCode}, Reason: {ReasonPhrase}", 
+                        endpoint, response.StatusCode, response.ReasonPhrase);
+                }
+            }
+            
+            return response;
         }
         catch (Exception ex)
         {
