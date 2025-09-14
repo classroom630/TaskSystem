@@ -7,6 +7,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaskSystem.API", "TaskSyste
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaskSystem.WebApp", "TaskSystem.WebApp\TaskSystem.WebApp.csproj", "{F1B7930C-9639-4014-9900-BA08FF527A95}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UserTaskManagement.Domain", "UserTaskManagement.Domain\UserTaskManagement.Domain.csproj", "{2502D6A5-7666-45DE-AB92-E3B1C50D68EC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UserTaskManagement.Application", "UserTaskManagement.Application\UserTaskManagement.Application.csproj", "{9EE2391E-53D1-46F4-AE4C-7B6EDC4961EF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UserTaskManagement.Infrastructure", "UserTaskManagement.Infrastructure\UserTaskManagement.Infrastructure.csproj", "{F723C4FA-49EA-4313-892D-FB3DEA6A337C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +27,18 @@ Global
 		{F1B7930C-9639-4014-9900-BA08FF527A95}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F1B7930C-9639-4014-9900-BA08FF527A95}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F1B7930C-9639-4014-9900-BA08FF527A95}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2502D6A5-7666-45DE-AB92-E3B1C50D68EC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2502D6A5-7666-45DE-AB92-E3B1C50D68EC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2502D6A5-7666-45DE-AB92-E3B1C50D68EC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2502D6A5-7666-45DE-AB92-E3B1C50D68EC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9EE2391E-53D1-46F4-AE4C-7B6EDC4961EF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9EE2391E-53D1-46F4-AE4C-7B6EDC4961EF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9EE2391E-53D1-46F4-AE4C-7B6EDC4961EF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9EE2391E-53D1-46F4-AE4C-7B6EDC4961EF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F723C4FA-49EA-4313-892D-FB3DEA6A337C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F723C4FA-49EA-4313-892D-FB3DEA6A337C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F723C4FA-49EA-4313-892D-FB3DEA6A337C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F723C4FA-49EA-4313-892D-FB3DEA6A337C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
